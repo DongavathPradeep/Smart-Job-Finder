@@ -1,14 +1,13 @@
-import streamlit as st
-import sqlite3
-import json
 import os
+import json
+import sqlite3
+import streamlit as st
 
 from resume_parser import parse_resume
 from job_search import search_jobs
-from main import score_jobs
 from email_notifier import send_email_alert
 
-# --- Database Setup Inside UI ---
+# --- Database Setup ---
 DB_PATH = "candidate.db"
 
 def init_db():
@@ -64,10 +63,43 @@ def get_candidate_profile() -> dict:
         "summary": row[4]
     }
 
-# Initialize Database
+# --- Scoring Engine ---
+def score_jobs(candidate_skills: list, jobs: list) -> list:
+    candidate_skills_lower = {s.lower().strip() for s in candidate_skills}
+    tech_keywords = [
+        "python", "django", "fastapi", "flask", "sql", "postgresql", "mysql", 
+        "docker", "aws", "git", "rest api", "pandas", "numpy", "react", "javascript", 
+        "machine learning", "selenium", "html", "css"
+    ]
+    
+    scored_jobs = []
+    for job in jobs:
+        title = job.get("title", "")
+        desc = job.get("description", "")
+        text = f"{title} {desc}".lower()
+        
+        matched = [s for s in candidate_skills if s.lower().strip() in text]
+        required_in_job = [kw for kw in tech_keywords if kw in text]
+        missing = [req for req in required_in_job if req not in candidate_skills_lower]
+        
+        if required_in_job:
+            score = (len(matched) / len(required_in_job)) * 100
+        else:
+            score = 80.0 if matched else 40.0
+            
+        job_copy = dict(job)
+        job_copy["match_score"] = min(100.0, round(score, 2))
+        job_copy["matched_skills"] = matched
+        job_copy["missing_skills"] = missing
+        scored_jobs.append(job_copy)
+        
+    scored_jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+    return scored_jobs
+
+# Initialize DB
 init_db()
 
-# --- Streamlit Layout ---
+# --- Streamlit UI ---
 st.set_page_config(
     page_title="AI Job Application Agent",
     page_icon="💼",
