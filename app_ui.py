@@ -14,10 +14,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- High-Contrast & Seamless Dark Theme Styling ---
+# --- High-Contrast UI Styling with IT Background Overlay ---
 custom_ui_style = """
     <style>
-    /* Remove Top Header White Bar & Blend with Background */
+    /* Remove Top Header White Bar */
     header[data-testid="stHeader"] {
         background: transparent !important;
     }
@@ -29,24 +29,49 @@ custom_ui_style = """
         display: none !important;
     }
 
-    /* Main App Gradient Background */
+    /* IT Tech Corporate Background Image with Subtle Dark Overlay */
     .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+        background: linear-gradient(rgba(10, 15, 30, 0.90), rgba(15, 23, 42, 0.94)), 
+                    url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed !important;
+        background-size: cover !important;
         color: #ffffff !important;
+    }
+
+    /* Make All Labels, Headers & Subtext Crystal Clear */
+    label, .stTextInput label, .stSelectbox label, .stSlider label {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* Form Input Fields (Inputs & Select Boxes) */
+    div[data-baseweb="input"], div[data-baseweb="select"] {
+        background-color: rgba(15, 23, 42, 0.85) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border-radius: 8px !important;
+    }
+    input, select, .stSelectbox div {
+        color: #ffffff !important;
+        font-weight: 500 !important;
     }
 
     /* Sidebar Background & Contrast */
     section[data-testid="stSidebar"] {
-        background-color: #0b1120 !important;
+        background-color: rgba(11, 17, 32, 0.95) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {
+        color: #f8fafc !important;
     }
 
-    /* Fix File Uploader (Clear White Box, Make Text Fully Visible) */
+    /* File Uploader Box Styling */
     [data-testid="stFileUploader"] {
-        background-color: rgba(30, 41, 59, 0.7) !important;
-        border: 1px dashed rgba(255, 255, 255, 0.3) !important;
+        background-color: rgba(30, 41, 59, 0.75) !important;
+        border: 1px dashed #38bdf8 !important;
         border-radius: 10px !important;
-        padding: 10px !important;
+        padding: 12px !important;
     }
     [data-testid="stFileUploader"] section {
         background-color: transparent !important;
@@ -55,17 +80,18 @@ custom_ui_style = """
         color: #f8fafc !important;
     }
     [data-testid="stFileUploader"] button {
-        background: #3b82f6 !important;
+        background: #2563eb !important;
         color: #ffffff !important;
         border: none !important;
         font-weight: 600 !important;
     }
 
-    /* Glassmorphism Containers for Jobs & Alerts */
+    /* Glassmorphism Cards */
     [data-testid="stVerticalBlock"] > div[data-testid="stBlock"] {
-        background: rgba(30, 41, 59, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(15, 23, 42, 0.82) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 12px !important;
+        backdrop-filter: blur(8px) !important;
     }
 
     /* Action Buttons */
@@ -207,10 +233,10 @@ init_db()
 
 # --- Center-Aligned JobNexus Title Banner ---
 st.markdown("""
-    <div style='text-align: center; padding: 20px 0px 30px 0px;'>
+    <div style='text-align: center; padding: 15px 0px 25px 0px;'>
         <h1 style='
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 3.2rem;
+            font-size: 3.4rem;
             font-weight: 800;
             margin: 0;
             padding: 0;
@@ -226,7 +252,7 @@ st.markdown("""
                 margin-right: 4px;
             '>Job</span><span style='color: #ffffff; font-weight: 400;'>Nexus</span>
         </h1>
-        <p style='color: #94a3b8 !important; font-size: 1.15rem; margin-top: 10px; margin-bottom: 0px;'>
+        <p style='color: #cbd5e1 !important; font-size: 1.15rem; font-weight: 500; margin-top: 8px; margin-bottom: 0px;'>
             Discover Tech Roles, Debug Your Skill Gaps, and Land Your Next Opportunity
         </p>
     </div>
@@ -234,7 +260,7 @@ st.markdown("""
 
 # --- Sidebar: Resume Upload & Candidate Info ---
 with st.sidebar:
-    st.markdown("<h2 style='color:#ffffff; font-size: 1.4rem;'>📄 Candidate Profile</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#38bdf8; font-size: 1.4rem; font-weight:700;'>📄 Candidate Profile</h2>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload your PDF Resume", type=["pdf"])
     
     if uploaded_file is not None:
@@ -266,7 +292,7 @@ with st.sidebar:
             st.warning("No candidate profile found. Please upload a resume first.")
 
 # --- Main Screen: Job Match & Gap Engine ---
-st.subheader("🔍 Job Match Engine")
+st.markdown("<h3 style='color:#ffffff; font-weight:700; margin-bottom:15px;'>🔍 Job Match Engine</h3>", unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 1])
 
@@ -308,7 +334,7 @@ if search_btn and role_query:
                 with st.container(border=True):
                     c1, c2 = st.columns([3, 1])
                     with c1:
-                        st.markdown(f"### {job.get('title')}")
+                        st.markdown(f"<h3 style='color:#38bdf8; margin-bottom:5px;'>{job.get('title')}</h3>", unsafe_allow_html=True)
                         st.markdown(f"**Company:** {job.get('company')} | **Location:** {job.get('location')} | **Level:** {exp_level}")
                         
                         # Matched Skills Badges
@@ -338,7 +364,7 @@ if search_btn and role_query:
 
 st.markdown("---")
 # --- Email Alerts Section ---
-st.subheader("📬 Automated Location Alerts")
+st.markdown("<h3 style='color:#ffffff; font-weight:700; margin-bottom:15px;'>📬 Automated Location Alerts</h3>", unsafe_allow_html=True)
 alert_col1, alert_col2 = st.columns([3, 1])
 with alert_col1:
     threshold = st.slider("Minimum Match Score Threshold (%)", min_value=50, max_value=100, value=75)
