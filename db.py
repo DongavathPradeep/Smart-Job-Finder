@@ -1,68 +1,66 @@
 import json
 import sqlite3
 
-DB_NAME = "agent_database.db"
+DB_PATH = "candidate.db"
 
 
 def init_db():
-    """Initialize candidate and application tracking tables."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS candidates (
+  conn = sqlite3.connect(DB_PATH)
+  cursor = conn.cursor()
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS candidate (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name TEXT,
             email TEXT,
             phone TEXT,
             skills TEXT,
-            resume_path TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            summary TEXT
         )
-    """
-    )
-    conn.commit()
-    conn.close()
+    """)
+  conn.commit()
+  conn.close()
 
 
-def save_candidate_profile(profile):
-    """Save or update candidate profile."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO candidates (full_name, email, phone, skills, resume_path)
+def store_candidate_profile(data: dict):
+  conn = sqlite3.connect(DB_PATH)
+  cursor = conn.cursor()
+  cursor.execute("DELETE FROM candidate")  # Keep only latest profile
+
+  skills_json = json.dumps(data.get("skills", []))
+  cursor.execute(
+      """
+        INSERT INTO candidate (full_name, email, phone, skills, summary)
         VALUES (?, ?, ?, ?, ?)
     """,
-        (
-            profile["full_name"],
-            profile["email"],
-            profile["phone"],
-            json.dumps(profile["skills"]),
-            profile["resume_path"],
-        ),
-    )
-    conn.commit()
-    conn.close()
+      (
+          data.get("full_name", "Anonymous Candidate"),
+          data.get("email", ""),
+          data.get("phone", ""),
+          skills_json,
+          data.get("summary", ""),
+      ),
+  )
+  conn.commit()
+  conn.close()
 
 
-def get_latest_candidate_profile():
-    """Retrieve the most recently saved profile."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT full_name, email, phone, skills, resume_path FROM candidates ORDER BY id DESC LIMIT 1"
-    )
-    row = cursor.fetchone()
-    conn.close()
+def get_candidate_profile() -> dict:
+  conn = sqlite3.connect(DB_PATH)
+  cursor = conn.cursor()
+  cursor.execute(
+      "SELECT full_name, email, phone, skills, summary FROM candidate ORDER BY"
+      " id DESC LIMIT 1"
+  )
+  row = cursor.fetchone()
+  conn.close()
 
-    if row:
-        return {
-            "full_name": row[0],
-            "email": row[1],
-            "phone": row[2],
-            "skills": json.loads(row[3]),
-            "resume_path": row[4],
-            "cover_letter": f"Hi, I am {row[0]}. I have strong practical skills in {', '.join(json.loads(row[3])[:4])} and I am excited to apply for this opportunity.",
-        }
-    return None
+  if not row:
+    return {}
+
+  return {
+    "full_name": row[0],
+    "email": row[1],
+    "phone": row[2],
+    "skills": json.loads(row[3]) if row[3] else [],
+    "summary": row[4],
+  }
