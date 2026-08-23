@@ -14,79 +14,78 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- UI Styling (Dark Aurora Gradient + Glassmorphism + Hide Deploy Badge) ---
+# --- High-Contrast UI Styling ---
 custom_ui_style = """
     <style>
-    /* Hide Deploy Badge / Viewer Avatar */
+    /* Hide Deploy Badge */
     [data-testid="stStatusWidget"],
     .viewerBadge_container__r5tak,
     div[class*="viewerBadge"] {
         display: none !important;
     }
 
-    /* Modern Dark Aurora Background */
+    /* Modern Dark Navy Background */
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
-        color: #f8fafc;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #ffffff !important;
     }
 
-    /* Glassmorphism Containers for Job Cards */
-    [data-testid="stVerticalBlock"] > div[data-testid="stBlock"] {
-        background: rgba(30, 41, 59, 0.7) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        backdrop-filter: blur(10px) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    /* Fix All Text Visibility & Contrast */
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {
+        color: #f8fafc !important;
     }
 
-    /* Sidebar Customization */
+    /* Sidebar Text & Background Fix */
     section[data-testid="stSidebar"] {
-        background-color: rgba(15, 23, 42, 0.95) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background-color: #0b1120 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
     }
 
-    /* Interactive Buttons */
+    /* Glassmorphism Containers */
+    [data-testid="stVerticalBlock"] > div[data-testid="stBlock"] {
+        background: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
+    }
+
+    /* Gradient Action Buttons */
     .stButton > button {
         background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%) !important;
-        color: white !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
     }
 
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.5) !important;
-    }
-
-    /* Matched & Missing Skill Badges */
+    /* Badges */
     .badge-matched {
-        background: rgba(16, 185, 129, 0.2);
+        background: #064e3b;
         color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.4);
+        border: 1px solid #059669;
         padding: 4px 10px;
         border-radius: 6px;
         font-size: 0.85rem;
         margin-right: 6px;
         display: inline-block;
         margin-bottom: 6px;
-        font-weight: 500;
+        font-weight: 600;
     }
     
     .badge-missing {
-        background: rgba(239, 68, 68, 0.2);
+        background: #7f1d1d;
         color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.4);
+        border: 1px solid #dc2626;
         padding: 4px 10px;
         border-radius: 6px;
         font-size: 0.85rem;
         margin-right: 6px;
         display: inline-block;
         margin-bottom: 6px;
-        font-weight: 500;
+        font-weight: 600;
     }
     </style>
 """
@@ -189,44 +188,31 @@ def score_jobs(candidate_skills: list, jobs: list) -> list:
 # Initialize DB
 init_db()
 
-# --- JobNexus Visual Header Banner ---
+# --- Clean & Crystal Clear JobNexus Title Banner ---
 st.markdown("""
-<div style="text-align: left; padding: 10px 0px 5px 0px;">
-    <svg width="340" height="65" viewBox="0 0 340 65" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="auroraGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#38bdf8" />
-                <stop offset="50%" stop-color="#818cf8" />
-                <stop offset="100%" stop-color="#c084fc" />
-            </linearGradient>
-            <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#38bdf8" />
-                <stop offset="100%" stop-color="#6366f1" />
-            </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-        </defs>
-
-        <!-- Modern Nexus Node Icon -->
-        <g transform="translate(5, 12)">
-            <circle cx="18" cy="18" r="16" stroke="url(#iconGrad)" stroke-width="2.5" fill="rgba(99,102,241,0.15)"/>
-            <circle cx="18" cy="18" r="5" fill="url(#iconGrad)"/>
-            <line x1="18" y1="2" x2="18" y2="8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-            <line x1="18" y1="28" x2="18" y2="34" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
-            <line x1="2" y1="18" x2="8" y2="18" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-            <line x1="28" y1="18" x2="34" y2="18" stroke="#c084fc" stroke-width="2" stroke-linecap="round"/>
-        </g>
-
-        <!-- Brand Text with Aurora Gradient -->
-        <text x="55" y="39" font-family="'Segoe UI', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="36" fill="url(#auroraGrad)" filter="url(#glow)">Job</text>
-        <text x="120" y="39" font-family="'Segoe UI', 'Inter', -apple-system, sans-serif" font-weight="400" font-size="36" fill="#f8fafc" letter-spacing="1">Nexus</text>
-    </svg>
-</div>
+    <div style='padding: 10px 0px 5px 0px;'>
+        <h1 style='
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        '>
+            🌐 <span style='
+                background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-left: 10px;
+                margin-right: 2px;
+            '>Job</span><span style='color: #ffffff; font-weight: 400;'>Nexus</span>
+        </h1>
+        <p style='color: #94a3b8 !important; font-size: 1.05rem; margin-top: 6px; margin-bottom: 20px;'>
+            Discover Tech Roles, Debug Your Skill Gaps, and Land Your Next Opportunity
+        </p>
+    </div>
 """, unsafe_allow_html=True)
-
-st.caption("Discover Tech Roles, Debug Your Skill Gaps, and Land Your Next Opportunity")
 
 # --- Sidebar: Resume Upload & Candidate Info ---
 with st.sidebar:
@@ -307,7 +293,7 @@ if search_btn and role_query:
                         st.markdown(f"### {job.get('title')}")
                         st.markdown(f"**Company:** {job.get('company')} | **Location:** {job.get('location')} | **Level:** {exp_level}")
                         
-                        # Matched Skills Tag Badges
+                        # Matched Skills Badges
                         matched = job.get("matched_skills", [])
                         if matched:
                             matched_html = "".join([f"<span class='badge-matched'>✓ {s}</span>" for s in matched])
@@ -315,7 +301,7 @@ if search_btn and role_query:
                         else:
                             st.write("**Matched Skills:** None detected")
                         
-                        # Missing Skills / Skill Gaps Tag Badges
+                        # Missing Skills Badges
                         missing = job.get("missing_skills", [])
                         if missing:
                             missing_html = "".join([f"<span class='badge-missing'>✗ {s}</span>" for s in missing])
