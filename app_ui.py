@@ -31,39 +31,70 @@ custom_ui_style = """
 
     /* IT Tech Corporate Background Image with Subtle Dark Overlay */
     .stApp {
-        background: linear-gradient(rgba(10, 15, 30, 0.90), rgba(15, 23, 42, 0.94)), 
+        background: linear-gradient(rgba(10, 15, 30, 0.88), rgba(15, 23, 42, 0.93)), 
                     url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed !important;
         background-size: cover !important;
         color: #ffffff !important;
     }
 
-    /* Make All Labels, Headers & Subtext Crystal Clear */
+    /* Form Labels High Contrast */
     label, .stTextInput label, .stSelectbox label, .stSlider label {
         color: #38bdf8 !important;
         font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        letter-spacing: 0.5px !important;
+        font-size: 0.92rem !important;
+        margin-bottom: 4px !important;
     }
 
-    /* Form Input Fields (Inputs & Select Boxes) */
-    div[data-baseweb="input"], div[data-baseweb="select"] {
-        background-color: rgba(15, 23, 42, 0.85) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        border-radius: 8px !important;
-    }
-    input, select, .stSelectbox div {
+    /* Input Fields & Select Boxes Dark Theme with Crisp White Text */
+    .stTextInput input {
+        background-color: #1e293b !important;
         color: #ffffff !important;
-        font-weight: 500 !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+    }
+    
+    .stSelectbox > div > div {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    
+    .stSelectbox svg {
+        fill: #38bdf8 !important;
     }
 
-    /* Sidebar Background & Contrast */
+    /* Sidebar Background & Text Styling */
     section[data-testid="stSidebar"] {
-        background-color: rgba(11, 17, 32, 0.95) !important;
+        background-color: rgba(11, 17, 32, 0.98) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
         backdrop-filter: blur(10px) !important;
     }
-    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] span, 
+    section[data-testid="stSidebar"] p {
         color: #f8fafc !important;
+    }
+
+    /* Candidate Profile Card in Sidebar */
+    .profile-card {
+        background: rgba(30, 41, 59, 0.9) !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 10px !important;
+        padding: 14px !important;
+        margin-top: 12px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+    }
+    .profile-card p {
+        margin: 6px 0 !important;
+        font-size: 0.92rem !important;
+        color: #f8fafc !important;
+    }
+    .profile-card b {
+        color: #38bdf8 !important;
     }
 
     /* File Uploader Box Styling */
@@ -102,6 +133,7 @@ custom_ui_style = """
         border-radius: 8px !important;
         font-weight: 600 !important;
         box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        height: 42px !important;
     }
 
     /* Skill Tags */
@@ -282,12 +314,18 @@ with st.sidebar:
     if st.button("Load Stored Profile", use_container_width=True):
         profile = get_candidate_profile()
         if profile:
-            st.write(f"**Name:** {profile.get('full_name')}")
-            st.write(f"**Email:** {profile.get('email')}")
-            st.write(f"**Phone:** {profile.get('phone')}")
-            st.write("**Extracted Skills:**")
             skills = profile.get("skills", [])
-            st.info(", ".join(skills) if skills else "No skills parsed yet.")
+            skills_html = "".join([f"<span class='badge-matched' style='margin-bottom:4px;'>✓ {s}</span>" for s in skills]) if skills else "<span style='color:#94a3b8;'>No skills parsed yet.</span>"
+            
+            st.markdown(f"""
+                <div class='profile-card'>
+                    <p><b>Name:</b> {profile.get('full_name', 'N/A')}</p>
+                    <p><b>Email:</b> {profile.get('email', 'N/A')}</p>
+                    <p><b>Phone:</b> {profile.get('phone', 'N/A')}</p>
+                    <p style='margin-top:8px;'><b>Extracted Skills:</b></p>
+                    <div style='margin-top:4px;'>{skills_html}</div>
+                </div>
+            """, unsafe_allow_html=True)
         else:
             st.warning("No candidate profile found. Please upload a resume first.")
 
@@ -309,8 +347,7 @@ with col3:
         ["Hyderabad", "Bangalore", "Pune", "Chennai", "Mumbai", "Noida", "Gurgaon", "Remote"]
     )
 with col4:
-    st.write("")
-    st.write("")
+    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
     search_btn = st.button("Search Jobs", use_container_width=True, type="primary")
 
 if search_btn and role_query:
@@ -369,8 +406,7 @@ alert_col1, alert_col2 = st.columns([3, 1])
 with alert_col1:
     threshold = st.slider("Minimum Match Score Threshold (%)", min_value=50, max_value=100, value=75)
 with alert_col2:
-    st.write("")
-    st.write("")
+    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
     if st.button("Trigger Email Digest", use_container_width=True):
         profile = get_candidate_profile()
         if not profile:
@@ -394,3 +430,6 @@ with alert_col2:
                         st.error("Failed to send email. Please check your credentials.")
                 else:
                     st.warning("No jobs matched the score threshold.")
+
+# --- Footer Branding ---
+st.markdown("<br><hr style='border: 0.5px solid rgba(255,255,255,0.1);'><p style='text-align: center; color: #94a3b8; font-size: 0.88rem;'>Engineered by <b style='color: #38bdf8;'>D. Pradeep Naik</b> | JobNexus Career Suite</p>", unsafe_allow_html=True)
