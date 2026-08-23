@@ -1,0 +1,38 @@
+[
+    {
+        "title": "Junior Python Developer",
+        "company": "ABC Technologies",
+        "skills": ["Python", "SQL", "Git"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    },
+    {
+        "title": "Python Developer",
+        "company": "XYZ Solutions",
+        "skills": ["Python", "Django", "SQL", "Git"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    },
+    {
+        "title": "Data Analyst",
+        "company": "Data Corp",
+        "skills": ["Python", "SQL", "Excel", "Power BI"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    },
+    {
+        "title": "Frontend Developer",
+        "company": "Web Solutions Inc",
+        "skills": ["HTML", "CSS", "JavaScript", "React"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    },
+    {
+        "title": "Web Developer",
+        "company": "Tech Innovators",
+        "skills": ["HTML", "CSS", "Python", "SQL"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    },
+    {
+        "title": "Software Engineer",
+        "company": "Global Tech",
+        "skills": ["Python", "SQL", "Git", "Excel"],
+        "url": "https://www.selenium.dev/selenium/web/web-form.html"
+    }
+]
