@@ -7,6 +7,25 @@ from resume_parser import parse_resume
 from job_search import search_jobs
 from email_notifier import send_email_alert
 
+# --- Streamlit Layout Configuration ---
+st.set_page_config(
+    page_title="AI Job Application Agent",
+    page_icon="💼",
+    layout="wide"
+)
+
+# Hide Profile Badge CSS
+hide_badge_style = """
+    <style>
+    [data-testid="stStatusWidget"],
+    .viewerBadge_container__r5tak,
+    div[class*="viewerBadge"] {
+        display: none !important;
+    }
+    </style>
+"""
+st.markdown(hide_badge_style, unsafe_allow_html=True)
+
 # --- Database Setup ---
 DB_PATH = "candidate.db"
 
@@ -63,7 +82,7 @@ def get_candidate_profile() -> dict:
         "summary": row[4]
     }
 
-# --- Scoring Engine ---
+# --- Match Scoring Engine ---
 def score_jobs(candidate_skills: list, jobs: list) -> list:
     candidate_skills_lower = {s.lower().strip() for s in candidate_skills}
     tech_keywords = [
@@ -99,17 +118,10 @@ def score_jobs(candidate_skills: list, jobs: list) -> list:
 # Initialize DB
 init_db()
 
-# --- Streamlit UI ---
-st.set_page_config(
-    page_title="AI Job Application Agent",
-    page_icon="💼",
-    layout="wide"
-)
-
 st.title("💼 Autonomous AI Job Discovery & Apply Agent")
-st.caption("Automate your job search, filter by preferred locations, analyze skill matches, and trigger workflows.")
+st.caption("Automate your job search, filter by experience level & location, analyze matches, and trigger alerts.")
 
-# Sidebar: Resume Ingestion
+# Sidebar: Resume Upload
 with st.sidebar:
     st.header("📄 Candidate Profile")
     uploaded_file = st.file_uploader("Upload your PDF Resume", type=["pdf"])
@@ -141,18 +153,24 @@ with st.sidebar:
         else:
             st.warning("No candidate profile found. Please upload a resume first.")
 
-# Main Screen: Job Match Engine
+# Main Screen: Search Engine with Experience Level
 st.subheader("🔍 Job Match Engine")
-col1, col2, col3 = st.columns([2, 2, 1])
+
+col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 1])
 
 with col1:
     role_query = st.text_input("Target Job Role", value="Python Developer", placeholder="e.g. Python Developer, Data Analyst")
 with col2:
+    exp_level = st.selectbox(
+        "Experience Level",
+        ["Fresher / Entry Level", "Experienced (1-3 yrs)", "Senior (4+ yrs)", "All Levels"]
+    )
+with col3:
     location_query = st.selectbox(
         "Preferred Location",
         ["Hyderabad", "Bangalore", "Pune", "Chennai", "Mumbai", "Noida", "Gurgaon", "Remote"]
     )
-with col3:
+with col4:
     st.write("")
     st.write("")
     search_btn = st.button("Search Jobs", use_container_width=True, type="primary")
@@ -162,23 +180,30 @@ if search_btn and role_query:
     if not profile:
         st.error("Candidate profile not found. Please upload your resume from the left sidebar first.")
     else:
-        with st.spinner(f"Fetching '{role_query}' jobs in '{location_query}'..."):
-            raw_jobs = search_jobs(role=role_query, location=location_query)
+        # Construct search query with experience level keyword
+        search_term = role_query
+        if exp_level == "Fresher / Entry Level":
+            search_term = f"{role_query} fresher"
+        elif exp_level == "Senior (4+ yrs)":
+            search_term = f"Senior {role_query}"
+
+        with st.spinner(f"Fetching '{search_term}' jobs in '{location_query}'..."):
+            raw_jobs = search_jobs(role=search_term, location=location_query)
             results = score_jobs(profile.get("skills", []), raw_jobs)
             
-            st.write(f"Found **{len(results)}** active opportunities in **{location_query}** for **{profile.get('full_name')}**:")
+            st.write(f"Found **{len(results)}** active opportunities for **{exp_level}** in **{location_query}**:")
             
             for job in results:
                 with st.container(border=True):
                     c1, c2 = st.columns([3, 1])
                     with c1:
                         st.markdown(f"### {job.get('title')}")
-                        st.markdown(f"**Company:** {job.get('company')} | **Location:** {job.get('location')}")
+                        st.markdown(f"**Company:** {job.get('company')} | **Location:** {job.get('location')} | **Level:** {exp_level}")
                         st.write("**Matched Skills:** " + ", ".join(job.get("matched_skills", [])))
                         if job.get("missing_skills"):
                             st.write("**Skill Gaps (To Learn):** " + ", ".join(job.get("missing_skills", [])))
                         if job.get("url"):
-                            st.markdown(f"[Apply on Company Website]({job.get('url')})")
+                            st.markdown(f"[Apply on Portal]({job.get('url')})")
                     with c2:
                         score = int(job.get("match_score", 0))
                         st.metric(label="Match Score", value=f"{score}%")
@@ -198,8 +223,9 @@ with alert_col2:
         if not profile:
             st.error("Please upload a resume first.")
         else:
+            search_term = f"{role_query} fresher" if exp_level == "Fresher / Entry Level" else role_query
             with st.spinner(f"Dispatching SMTP digest for {location_query}..."):
-                jobs = search_jobs(role=role_query, location=location_query)
+                jobs = search_jobs(role=search_term, location=location_query)
                 scored = score_jobs(profile.get("skills", []), jobs)
                 qualified = [j for j in scored if j.get("match_score", 0) >= threshold]
                 
