@@ -14,44 +14,61 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- High-Contrast UI Styling ---
+# --- High-Contrast & Seamless Dark Theme Styling ---
 custom_ui_style = """
     <style>
-    /* Hide Deploy Badge */
+    /* Remove Top Header White Bar & Blend with Background */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+    
+    /* Hide Deploy Badge & Viewer Avatar */
     [data-testid="stStatusWidget"],
     .viewerBadge_container__r5tak,
     div[class*="viewerBadge"] {
         display: none !important;
     }
 
-    /* Modern Dark Navy Background */
+    /* Main App Gradient Background */
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
         color: #ffffff !important;
     }
 
-    /* Fix All Text Visibility & Contrast */
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {
-        color: #f8fafc !important;
-    }
-
-    /* Sidebar Text & Background Fix */
+    /* Sidebar Background & Contrast */
     section[data-testid="stSidebar"] {
         background-color: #0b1120 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
-    section[data-testid="stSidebar"] * {
+
+    /* Fix File Uploader (Clear White Box, Make Text Fully Visible) */
+    [data-testid="stFileUploader"] {
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        border: 1px dashed rgba(255, 255, 255, 0.3) !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
+    }
+    [data-testid="stFileUploader"] section {
+        background-color: transparent !important;
+    }
+    [data-testid="stFileUploader"] * {
+        color: #f8fafc !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background: #3b82f6 !important;
         color: #ffffff !important;
+        border: none !important;
+        font-weight: 600 !important;
     }
 
-    /* Glassmorphism Containers */
+    /* Glassmorphism Containers for Jobs & Alerts */
     [data-testid="stVerticalBlock"] > div[data-testid="stBlock"] {
         background: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
     }
 
-    /* Gradient Action Buttons */
+    /* Action Buttons */
     .stButton > button {
         background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%) !important;
         color: #ffffff !important;
@@ -61,7 +78,7 @@ custom_ui_style = """
         box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
     }
 
-    /* Badges */
+    /* Skill Tags */
     .badge-matched {
         background: #064e3b;
         color: #34d399;
@@ -188,27 +205,28 @@ def score_jobs(candidate_skills: list, jobs: list) -> list:
 # Initialize DB
 init_db()
 
-# --- Clean & Crystal Clear JobNexus Title Banner ---
+# --- Center-Aligned JobNexus Title Banner ---
 st.markdown("""
-    <div style='padding: 10px 0px 5px 0px;'>
+    <div style='text-align: center; padding: 20px 0px 30px 0px;'>
         <h1 style='
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 2.8rem;
+            font-size: 3.2rem;
             font-weight: 800;
             margin: 0;
             padding: 0;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
         '>
             🌐 <span style='
                 background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                margin-left: 10px;
-                margin-right: 2px;
+                margin-left: 12px;
+                margin-right: 4px;
             '>Job</span><span style='color: #ffffff; font-weight: 400;'>Nexus</span>
         </h1>
-        <p style='color: #94a3b8 !important; font-size: 1.05rem; margin-top: 6px; margin-bottom: 20px;'>
+        <p style='color: #94a3b8 !important; font-size: 1.15rem; margin-top: 10px; margin-bottom: 0px;'>
             Discover Tech Roles, Debug Your Skill Gaps, and Land Your Next Opportunity
         </p>
     </div>
@@ -216,7 +234,7 @@ st.markdown("""
 
 # --- Sidebar: Resume Upload & Candidate Info ---
 with st.sidebar:
-    st.header("📄 Candidate Profile")
+    st.markdown("<h2 style='color:#ffffff; font-size: 1.4rem;'>📄 Candidate Profile</h2>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload your PDF Resume", type=["pdf"])
     
     if uploaded_file is not None:
