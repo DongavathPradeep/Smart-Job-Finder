@@ -1,15 +1,73 @@
 import streamlit as st
+import sqlite3
+import json
 import os
 
 from resume_parser import parse_resume
-from db import init_db, store_candidate_profile, get_candidate_profile
 from job_search import search_jobs
 from main import score_jobs
 from email_notifier import send_email_alert
 
-# Initialize database
+# --- Database Setup Inside UI ---
+DB_PATH = "candidate.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS candidate (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT,
+            email TEXT,
+            phone TEXT,
+            skills TEXT,
+            summary TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def store_candidate_profile(data: dict):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM candidate")
+    
+    skills_json = json.dumps(data.get("skills", []))
+    cursor.execute("""
+        INSERT INTO candidate (full_name, email, phone, skills, summary)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        data.get("full_name", "Anonymous Candidate"),
+        data.get("email", ""),
+        data.get("phone", ""),
+        skills_json,
+        data.get("summary", "")
+    ))
+    conn.commit()
+    conn.close()
+
+def get_candidate_profile() -> dict:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT full_name, email, phone, skills, summary FROM candidate ORDER BY id DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return {}
+        
+    return {
+        "full_name": row[0],
+        "email": row[1],
+        "phone": row[2],
+        "skills": json.loads(row[3]) if row[3] else [],
+        "summary": row[4]
+    }
+
+# Initialize Database
 init_db()
 
+# --- Streamlit Layout ---
 st.set_page_config(
     page_title="AI Job Application Agent",
     page_icon="💼",
@@ -17,16 +75,16 @@ st.set_page_config(
 )
 
 st.title("💼 Autonomous AI Job Discovery & Apply Agent")
-st.caption("Automate job discovery, match scores, location filters, and email digests.")
+st.caption("Automate your job search, filter by preferred locations, analyze skill matches, and trigger workflows.")
 
-# Sidebar: Resume Ingestion & Profile Status
+# Sidebar: Resume Ingestion
 with st.sidebar:
     st.header("📄 Candidate Profile")
     uploaded_file = st.file_uploader("Upload your PDF Resume", type=["pdf"])
     
     if uploaded_file is not None:
         if st.button("Ingest Resume", use_container_width=True):
-            with st.spinner("Parsing resume and storing in SQLite..."):
+            with st.spinner("Parsing resume and storing in database..."):
                 temp_path = f"temp_{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
@@ -51,7 +109,7 @@ with st.sidebar:
         else:
             st.warning("No candidate profile found. Please upload a resume first.")
 
-# Main Screen: Job Discovery & Scoring
+# Main Screen: Job Match Engine
 st.subheader("🔍 Job Match Engine")
 col1, col2, col3 = st.columns([2, 2, 1])
 
@@ -88,7 +146,7 @@ if search_btn and role_query:
                         if job.get("missing_skills"):
                             st.write("**Skill Gaps (To Learn):** " + ", ".join(job.get("missing_skills", [])))
                         if job.get("url"):
-                            st.markdown(f"[Apply on Portal]({job.get('url')})")
+                            st.markdown(f"[Apply on Company Website]({job.get('url')})")
                     with c2:
                         score = int(job.get("match_score", 0))
                         st.metric(label="Match Score", value=f"{score}%")
@@ -122,6 +180,6 @@ with alert_col2:
                     if success:
                         st.success(f"Email sent successfully to {profile.get('email')}!")
                     else:
-                        st.error("Failed to send email. Check credentials.")
+                        st.error("Failed to send email. Please check your credentials.")
                 else:
                     st.warning("No jobs matched the score threshold.")
