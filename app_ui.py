@@ -125,24 +125,14 @@ JOB_STATUS_OPTIONS = ["Not Applied", "Applied", "Interviewing", "Saved"]
 # ============================================================
 # HELPERS
 # ============================================================
-def render_header():
-    st.markdown(
-        """
-        <div class='header-wrap'>
-            <h2 class='gradient-title'>⚡ SmartJobFinder AI Console</h2>
-            <p class='header-sub'>Vector Embeddings &amp; Semantic Skill-Gap Architecture</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_sidebar():
+def render_resume_upload():
+    """Centered resume upload block in the main page body."""
     profile = get_candidate_profile()
 
-    with st.sidebar:
-        st.markdown("<h3 style='color:#38bdf8;'>📄 Candidate Ingestion</h3>", unsafe_allow_html=True)
-        uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
+    left, mid, right = st.columns([1, 2, 1])
+    with mid:
+        st.markdown("<h3 style='text-align:center; color:#38bdf8;'>📄 Upload Your Resume</h3>", unsafe_allow_html=True)
+        uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"], label_visibility="collapsed")
 
         if uploaded_file and st.button("Parse & Generate Embeddings", use_container_width=True):
             temp_path = f"temp_{uploaded_file.name}"
@@ -162,27 +152,40 @@ def render_sidebar():
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-        st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
-
         if profile:
+            skills = profile.get("skills", [])
+            ats = min(95, max(50, len(skills) * 12)) if skills else 30
+            c_name = profile.get("full_name") or "Not set"
+            c_email = profile.get("email") or "Not set"
+
+            m1, m2 = st.columns(2)
+            m1.metric("Candidate", c_name)
+            m2.metric("Neural ATS Alignment", f"{ats}/100")
+            st.progress(ats / 100)
+            st.caption(f"Email: {c_email}")
+
+            if skills:
+                st.markdown("<div style='margin-top:8px;'><b>Extracted Skills:</b></div>", unsafe_allow_html=True)
+                st.markdown("".join(f"<span class='tag-match'>{s}</span>" for s in skills), unsafe_allow_html=True)
+        else:
+            st.info("Upload a resume above to build your candidate profile.")
+
+    return profile
+
+
+def render_sidebar():
+    profile = get_candidate_profile()
+
+    with st.sidebar:
+        if profile:
+            st.markdown("<h4 style='color:#38bdf8;'>👤 Candidate Snapshot</h4>", unsafe_allow_html=True)
             skills = profile.get("skills", [])
             ats = min(95, max(50, len(skills) * 12)) if skills else 30
             st.metric("Neural ATS Alignment", f"{ats}/100")
             st.progress(ats / 100)
+            st.markdown(f"**Name:** `{profile.get('full_name') or 'Not set'}`")
+            st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
 
-            c_name = profile.get("full_name") or "Not set"
-            c_email = profile.get("email") or "Not set"
-
-            st.markdown(f"**Candidate:** `{c_name}`")
-            st.markdown(f"**Email:** <br><code style='color:#34d399;'>{c_email}</code>", unsafe_allow_html=True)
-
-            if skills:
-                st.markdown("<div style='margin-top:10px;'><b>Extracted Skills:</b></div>", unsafe_allow_html=True)
-                st.markdown("".join(f"<span class='tag-match'>{s}</span>" for s in skills), unsafe_allow_html=True)
-        else:
-            st.info("Upload a resume to build your candidate profile.")
-
-        st.markdown("<hr style='border:0.5px solid #334155; margin-top:30px;'>", unsafe_allow_html=True)
         st.markdown(
             """
             <div class='sidebar-footer'>
@@ -251,11 +254,12 @@ def render_job_card(job, idx, statuses):
 # ============================================================
 # MAIN
 # ============================================================
-render_header()
-profile = render_sidebar()
-
 if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
+
+render_sidebar()
+profile = render_resume_upload()
+st.markdown("<hr style='border:0.5px solid #334155; margin: 8px 0 24px 0;'>", unsafe_allow_html=True)
 
 tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs(
     ["🎯 Resume-Matched Jobs", "📊 Gap Intelligence", "🗺️ 7-Day Bridge Roadmap", "📋 Application Tracker", "📬 Automation & SMTP"]
