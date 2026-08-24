@@ -9,164 +9,85 @@ from email_notifier import send_email_alert
 
 # --- Streamlit Layout Configuration ---
 st.set_page_config(
-    page_title="JobNexus - IT Career & Skill Gap Engine",
+    page_title="JobNexus | Developer Career Intelligence",
     page_icon="💼",
     layout="wide"
 )
 
-# --- High-Contrast UI Styling with IT Background Overlay ---
+# --- Professional Developer Theme (No AI-like Neon Glow) ---
 custom_ui_style = """
     <style>
-    /* Remove Top Header White Bar */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-    }
-    
-    /* Hide Deploy Badge & Viewer Avatar */
-    [data-testid="stStatusWidget"],
-    .viewerBadge_container__r5tak,
-    div[class*="viewerBadge"] {
-        display: none !important;
-    }
+    header[data-testid="stHeader"] { background: transparent !important; }
+    [data-testid="stStatusWidget"], div[class*="viewerBadge"] { display: none !important; }
 
-    /* IT Tech Corporate Background Image with Subtle Dark Overlay */
+    /* Clean Dark Developer Theme */
     .stApp {
-        background: linear-gradient(rgba(10, 15, 30, 0.88), rgba(15, 23, 42, 0.93)), 
-                    url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed !important;
-        background-size: cover !important;
-        color: #ffffff !important;
+        background-color: #0d1117 !important;
+        color: #c9d1d9 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
     }
 
-    /* Form Labels High Contrast */
-    label, .stTextInput label, .stSelectbox label, .stSlider label {
-        color: #38bdf8 !important;
-        font-weight: 700 !important;
-        font-size: 0.92rem !important;
-        margin-bottom: 4px !important;
+    /* Input Fields */
+    .stTextInput input, .stSelectbox > div > div {
+        background-color: #161b22 !important;
+        color: #f0f6fc !important;
+        border: 1px solid #30363d !important;
+        border-radius: 6px !important;
     }
 
-    /* Input Fields & Select Boxes Dark Theme with Crisp White Text */
-    .stTextInput input {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-        border: 1px solid #38bdf8 !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-    }
-    
-    .stSelectbox > div > div {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-        border: 1px solid #38bdf8 !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    
-    .stSelectbox svg {
-        fill: #38bdf8 !important;
-    }
-
-    /* Sidebar Background & Text Styling */
-    section[data-testid="stSidebar"] {
-        background-color: rgba(11, 17, 32, 0.98) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    section[data-testid="stSidebar"] label, 
-    section[data-testid="stSidebar"] span, 
-    section[data-testid="stSidebar"] p {
-        color: #f8fafc !important;
-    }
-
-    /* Candidate Profile Card in Sidebar */
-    .profile-card {
-        background: rgba(30, 41, 59, 0.9) !important;
-        border: 1px solid #38bdf8 !important;
-        border-radius: 10px !important;
-        padding: 14px !important;
-        margin-top: 12px !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
-    }
-    .profile-card p {
-        margin: 6px 0 !important;
-        font-size: 0.92rem !important;
-        color: #f8fafc !important;
-    }
-    .profile-card b {
-        color: #38bdf8 !important;
-    }
-
-    /* File Uploader Box Styling */
-    [data-testid="stFileUploader"] {
-        background-color: rgba(30, 41, 59, 0.75) !important;
-        border: 1px dashed #38bdf8 !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
-    }
-    [data-testid="stFileUploader"] section {
-        background-color: transparent !important;
-    }
-    [data-testid="stFileUploader"] * {
-        color: #f8fafc !important;
-    }
-    [data-testid="stFileUploader"] button {
-        background: #2563eb !important;
-        color: #ffffff !important;
-        border: none !important;
-        font-weight: 600 !important;
-    }
-
-    /* Glassmorphism Cards */
-    [data-testid="stVerticalBlock"] > div[data-testid="stBlock"] {
-        background: rgba(15, 23, 42, 0.82) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 12px !important;
-        backdrop-filter: blur(8px) !important;
-    }
-
-    /* Action Buttons */
+    /* Action Buttons (Solid GitHub-Style Theme) */
     .stButton > button {
-        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%) !important;
+        background-color: #238636 !important;
         color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
+        border: 1px solid rgba(240, 246, 252, 0.1) !important;
+        border-radius: 6px !important;
         font-weight: 600 !important;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
-        height: 42px !important;
+    }
+    .stButton > button:hover {
+        background-color: #2ea043 !important;
     }
 
-    /* Skill Tags */
-    .badge-matched {
-        background: #064e3b;
-        color: #34d399;
-        border: 1px solid #059669;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        margin-right: 6px;
-        display: inline-block;
-        margin-bottom: 6px;
-        font-weight: 600;
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #010409 !important;
+        border-right: 1px solid #21262d !important;
     }
-    
-    .badge-missing {
-        background: #7f1d1d;
-        color: #f87171;
-        border: 1px solid #dc2626;
-        padding: 4px 10px;
+
+    /* Cards */
+    .job-card {
+        background-color: #161b22;
+        border: 1px solid #30363d;
         border-radius: 6px;
-        font-size: 0.85rem;
-        margin-right: 6px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    /* Tags */
+    .tag-match {
+        background-color: rgba(46, 160, 67, 0.15);
+        color: #3fb950;
+        border: 1px solid rgba(46, 160, 67, 0.4);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        margin-right: 5px;
         display: inline-block;
-        margin-bottom: 6px;
-        font-weight: 600;
+    }
+    .tag-gap {
+        background-color: rgba(248, 81, 73, 0.15);
+        color: #f85149;
+        border: 1px solid rgba(248, 81, 73, 0.4);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        margin-right: 5px;
+        display: inline-block;
     }
     </style>
 """
 st.markdown(custom_ui_style, unsafe_allow_html=True)
 
-# --- Database Setup ---
+# --- Database Layer ---
 DB_PATH = "candidate.db"
 
 def init_db():
@@ -189,7 +110,6 @@ def store_candidate_profile(data: dict):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM candidate")
-    
     skills_json = json.dumps(data.get("skills", []))
     cursor.execute("""
         INSERT INTO candidate (full_name, email, phone, skills, summary)
@@ -210,10 +130,8 @@ def get_candidate_profile() -> dict:
     cursor.execute("SELECT full_name, email, phone, skills, summary FROM candidate ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
     conn.close()
-    
     if not row:
         return {}
-        
     return {
         "full_name": row[0],
         "email": row[1],
@@ -222,17 +140,15 @@ def get_candidate_profile() -> dict:
         "summary": row[4]
     }
 
-# --- Match & Skill Gap Engine ---
+# --- Scoring Engine ---
 def score_jobs(candidate_skills: list, jobs: list) -> list:
     candidate_skills_lower = {s.lower().strip() for s in candidate_skills}
-    
     tech_keywords = [
         "python", "django", "fastapi", "flask", "sql", "postgresql", "mysql", "mongodb",
         "docker", "kubernetes", "aws", "azure", "gcp", "git", "github", "rest api", "graphql",
         "pandas", "numpy", "react", "javascript", "typescript", "machine learning", "deep learning",
         "selenium", "html", "css", "tailwind", "linux", "ci/cd", "redis", "celery", "airflow"
     ]
-    
     scored_jobs = []
     for job in jobs:
         title = job.get("title", "")
@@ -260,161 +176,126 @@ def score_jobs(candidate_skills: list, jobs: list) -> list:
     scored_jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
     return scored_jobs
 
-# Initialize DB
 init_db()
 
-# --- Center-Aligned JobNexus Title Banner ---
+# --- Top Navigation Header (Developer Style) ---
 st.markdown("""
-    <div style='text-align: center; padding: 15px 0px 25px 0px;'>
-        <h1 style='
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 3.4rem;
-            font-weight: 800;
-            margin: 0;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        '>
-            🌐 <span style='
-                background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin-left: 12px;
-                margin-right: 4px;
-            '>Job</span><span style='color: #ffffff; font-weight: 400;'>Nexus</span>
-        </h1>
-        <p style='color: #cbd5e1 !important; font-size: 1.15rem; font-weight: 500; margin-top: 8px; margin-bottom: 0px;'>
-            Discover Tech Roles, Debug Your Skill Gaps, and Land Your Next Opportunity
-        </p>
+<div style='display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #21262d;'>
+    <div>
+        <h2 style='margin: 0; color: #f0f6fc; font-weight: 600; font-size: 1.6rem;'>JobNexus Engine</h2>
+        <p style='margin: 0; color: #8b949e; font-size: 0.85rem;'>Automated Skill Gap Scorer & Tech Role Aggregator</p>
     </div>
+    <div style='text-align: right;'>
+        <span style='background-color: #21262d; color: #58a6ff; font-family: monospace; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;'>v2.4.0-stable</span>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
-# --- Sidebar: Resume Upload & Candidate Info ---
+st.write("")
+
+# --- Sidebar: Profile & DB Controls ---
 with st.sidebar:
-    st.markdown("<h2 style='color:#38bdf8; font-size: 1.4rem; font-weight:700;'>📄 Candidate Profile</h2>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload your PDF Resume", type=["pdf"])
+    st.markdown("<h4 style='color: #f0f6fc;'>Candidate Profile</h4>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
     
     if uploaded_file is not None:
-        if st.button("Ingest Resume", use_container_width=True):
-            with st.spinner("Parsing resume and analyzing profile..."):
+        if st.button("Parse & Ingest Resume", use_container_width=True):
+            with st.spinner("Extracting profile text & skills..."):
                 temp_path = f"temp_{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
-                
                 try:
                     parsed_data = parse_resume(temp_path)
                     store_candidate_profile(parsed_data)
-                    st.success("Resume parsed and saved successfully!")
+                    st.success("Candidate record stored in SQLite.")
                 finally:
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
     
-    st.markdown("---")
-    if st.button("Load Stored Profile", use_container_width=True):
-        profile = get_candidate_profile()
-        if profile:
-            skills = profile.get("skills", [])
-            skills_html = "".join([f"<span class='badge-matched' style='margin-bottom:4px;'>✓ {s}</span>" for s in skills]) if skills else "<span style='color:#94a3b8;'>No skills parsed yet.</span>"
-            
-            st.markdown(f"""
-                <div class='profile-card'>
-                    <p><b>Name:</b> {profile.get('full_name', 'N/A')}</p>
-                    <p><b>Email:</b> {profile.get('email', 'N/A')}</p>
-                    <p><b>Phone:</b> {profile.get('phone', 'N/A')}</p>
-                    <p style='margin-top:8px;'><b>Extracted Skills:</b></p>
-                    <div style='margin-top:4px;'>{skills_html}</div>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.warning("No candidate profile found. Please upload a resume first.")
-
-# --- Main Screen: Job Match & Gap Engine ---
-st.markdown("<h3 style='color:#ffffff; font-weight:700; margin-bottom:15px;'>🔍 Job Match Engine</h3>", unsafe_allow_html=True)
-
-col1, col2, col3, col4 = st.columns([2, 1.5, 1.5, 1])
-
-with col1:
-    role_query = st.text_input("Target Job Role", value="Python Developer", placeholder="e.g. Python Developer, Data Scientist")
-with col2:
-    exp_level = st.selectbox(
-        "Experience Level",
-        ["Fresher / Entry Level", "Experienced (1-3 yrs)", "Senior (4+ yrs)", "All Levels"]
-    )
-with col3:
-    location_query = st.selectbox(
-        "Preferred Location",
-        ["Hyderabad", "Bangalore", "Pune", "Chennai", "Mumbai", "Noida", "Gurgaon", "Remote"]
-    )
-with col4:
-    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-    search_btn = st.button("Search Jobs", use_container_width=True, type="primary")
-
-if search_btn and role_query:
+    st.markdown("<hr style='border: 0.5px solid #21262d;'>", unsafe_allow_html=True)
     profile = get_candidate_profile()
-    if not profile:
-        st.error("Candidate profile not found. Please upload your resume from the left sidebar first.")
+    if profile:
+        st.markdown(f"**Name:** `{profile.get('full_name', 'N/A')}`")
+        st.markdown(f"**Email:** `{profile.get('email', 'N/A')}`")
+        st.markdown("**Parsed Skills:**")
+        skills = profile.get("skills", [])
+        if skills:
+            tags = "".join([f"<span class='tag-match'>{s}</span>" for s in skills])
+            st.markdown(tags, unsafe_allow_html=True)
+        else:
+            st.caption("No skills identified.")
     else:
-        search_term = role_query
-        if exp_level == "Fresher / Entry Level":
-            search_term = f"{role_query} fresher"
-        elif exp_level == "Senior (4+ yrs)":
-            search_term = f"Senior {role_query}"
+        st.caption("No active candidate profile loaded.")
 
-        with st.spinner(f"Fetching '{search_term}' jobs in '{location_query}'..."):
-            raw_jobs = search_jobs(role=search_term, location=location_query)
-            results = score_jobs(profile.get("skills", []), raw_jobs)
-            
-            st.write(f"Found **{len(results)}** active opportunities for **{exp_level}** in **{location_query}**:")
-            
-            for job in results:
-                with st.container(border=True):
-                    c1, c2 = st.columns([3, 1])
-                    with c1:
-                        st.markdown(f"<h3 style='color:#38bdf8; margin-bottom:5px;'>{job.get('title')}</h3>", unsafe_allow_html=True)
-                        st.markdown(f"**Company:** {job.get('company')} | **Location:** {job.get('location')} | **Level:** {exp_level}")
-                        
-                        # Matched Skills Badges
-                        matched = job.get("matched_skills", [])
-                        if matched:
-                            matched_html = "".join([f"<span class='badge-matched'>✓ {s}</span>" for s in matched])
-                            st.markdown(f"**Matched Skills:** {matched_html}", unsafe_allow_html=True)
-                        else:
-                            st.write("**Matched Skills:** None detected")
-                        
-                        # Missing Skills Badges
-                        missing = job.get("missing_skills", [])
-                        if missing:
-                            missing_html = "".join([f"<span class='badge-missing'>✗ {s}</span>" for s in missing])
-                            st.markdown(f"**Missing Skills (Skill Gap to Learn):** {missing_html}", unsafe_allow_html=True)
-                        else:
-                            st.markdown("**Missing Skills:** <span class='badge-matched'>None! You cover all core skills.</span>", unsafe_allow_html=True)
-                        
-                        st.write("")
-                        if job.get("url"):
-                            st.markdown(f"[🚀 **Apply on Portal**]({job.get('url')})")
-                    
-                    with c2:
-                        score = int(job.get("match_score", 0))
-                        st.metric(label="Match Score", value=f"{score}%")
-                        st.progress(score / 100)
+# --- Main Tabs Layout ---
+tab1, tab2 = st.tabs(["Opportunity Feed", "Alerts & Automation"])
 
-st.markdown("---")
-# --- Email Alerts Section ---
-st.markdown("<h3 style='color:#ffffff; font-weight:700; margin-bottom:15px;'>📬 Automated Location Alerts</h3>", unsafe_allow_html=True)
-alert_col1, alert_col2 = st.columns([3, 1])
-with alert_col1:
-    threshold = st.slider("Minimum Match Score Threshold (%)", min_value=50, max_value=100, value=75)
-with alert_col2:
-    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-    if st.button("Trigger Email Digest", use_container_width=True):
-        profile = get_candidate_profile()
+with tab1:
+    c1, c2, c3, c4 = st.columns([2, 1.2, 1.2, 0.8])
+    with c1:
+        role_query = st.text_input("Role Title", value="Python Developer")
+    with c2:
+        exp_level = st.selectbox("Experience", ["Fresher / Entry Level", "1-3 Years", "4+ Years", "All"])
+    with c3:
+        location_query = st.selectbox("Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Remote"])
+    with c4:
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        search_btn = st.button("Query Jobs", use_container_width=True)
+
+    if search_btn and role_query:
         if not profile:
-            st.error("Please upload a resume first.")
+            st.warning("Upload a resume to calculate skill match scores.")
         else:
             search_term = f"{role_query} fresher" if exp_level == "Fresher / Entry Level" else role_query
-            with st.spinner(f"Dispatching SMTP digest for {location_query}..."):
-                jobs = search_jobs(role=search_term, location=location_query)
+            with st.spinner("Querying job feeds..."):
+                raw_jobs = search_jobs(role=search_term, location=location_query)
+                results = score_jobs(profile.get("skills", []), raw_jobs)
+                
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Opportunities Fetched", len(results))
+                avg_score = round(sum([j.get("match_score", 0) for j in results]) / len(results), 1) if results else 0
+                m2.metric("Average Stack Alignment", f"{avg_score}%")
+                m3.metric("Target Location", location_query)
+                
+                st.write("")
+                for job in results:
+                    matched = job.get("matched_skills", [])
+                    missing = job.get("missing_skills", [])
+                    matched_html = "".join([f"<span class='tag-match'>+ {s}</span>" for s in matched]) if matched else "<span style='color: #8b949e;'>None</span>"
+                    missing_html = "".join([f"<span class='tag-gap'>- {s}</span>" for s in missing]) if missing else "<span style='color: #3fb950;'>All target skills satisfied</span>"
+                    
+                    st.markdown(f"""
+                    <div class='job-card'>
+                        <div style='display: flex; justify-content: space-between; align-items: baseline;'>
+                            <h4 style='margin: 0; color: #58a6ff;'>{job.get('title')}</h4>
+                            <span style='font-weight: 700; color: #f0f6fc; font-size: 1.1rem;'>{job.get('match_score')}% Match</span>
+                        </div>
+                        <p style='margin: 4px 0 10px 0; color: #8b949e; font-size: 0.85rem;'>
+                            <b>{job.get('company')}</b> • {job.get('location')} • Experience: {exp_level}
+                        </p>
+                        <div style='margin-bottom: 6px;'>
+                            <span style='color: #8b949e; font-size: 0.8rem;'>Matched Skills: </span>{matched_html}
+                        </div>
+                        <div>
+                            <span style='color: #8b949e; font-size: 0.8rem;'>Missing Skills: </span>{missing_html}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if job.get("url"):
+                        st.markdown(f"[Apply via Career Portal]({job.get('url')})")
+
+with tab2:
+    st.markdown("#### Automated SMTP Dispatch")
+    st.caption("Configured for scheduled or trigger-based career digests.")
+    
+    threshold = st.slider("Score Threshold for Alerts (%)", 50, 100, 75)
+    
+    if st.button("Trigger Test Digest", type="secondary"):
+        if not profile:
+            st.error("Please load a candidate profile first.")
+        else:
+            with st.spinner("Dispatching summary email via SMTP..."):
+                jobs = search_jobs(role=role_query, location=location_query)
                 scored = score_jobs(profile.get("skills", []), jobs)
                 qualified = [j for j in scored if j.get("match_score", 0) >= threshold]
                 
@@ -425,11 +306,16 @@ with alert_col2:
                         matched_jobs=qualified
                     )
                     if success:
-                        st.success(f"Email sent successfully to {profile.get('email')}!")
+                        st.success(f"Digest dispatched to {profile.get('email')}")
                     else:
-                        st.error("Failed to send email. Please check your credentials.")
+                        st.error("Email service error. Check SMTP config.")
                 else:
-                    st.warning("No jobs matched the score threshold.")
+                    st.info("No opportunities met the threshold.")
 
-# --- Footer Branding ---
-st.markdown("<br><hr style='border: 0.5px solid rgba(255,255,255,0.1);'><p style='text-align: center; color: #94a3b8; font-size: 0.88rem;'>Engineered by <b style='color: #38bdf8;'>D. Pradeep Naik</b> | JobNexus Career Suite</p>", unsafe_allow_html=True)
+# --- Engineering Footer ---
+st.markdown("""
+<div style='margin-top: 40px; padding: 15px 0; border-top: 1px solid #21262d; display: flex; justify-content: space-between; font-size: 0.8rem; color: #8b949e;'>
+    <div>Architecture: Python, Streamlit, SQLite3, BeautifulSoup4</div>
+    <div>Developer: D. Pradeep Naik</div>
+</div>
+""", unsafe_allow_html=True)
