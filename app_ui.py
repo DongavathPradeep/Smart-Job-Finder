@@ -24,12 +24,13 @@ st.markdown("""
     border-top: 1px solid #334155;
     text-align: center;
     color: #94a3b8;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Top Header Section (Badge Removed) ---
+# --- Top Header Section ---
 st.markdown("""
 <div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155;'>
     <div>
@@ -162,9 +163,10 @@ with tab_alerts:
         send_email_alert(profile.get("email"), profile.get("full_name"), results)
         st.success("Alert processed via SMTP.")
 
-# --- Bottom Footer ---
+# --- Bottom Footer (2 Lines) ---
 st.markdown("""
 <div class='footer-container'>
-    ⚡ <b>JobNexus AI Engine</b> • Architected & Engineered by <b style='color:#38bdf8;'>Dongavath Pradeep</b> • Built with Python, Transformers & Streamlit
+    ⚡ <b>JobNexus AI Engine Architected & Engineered by</b><br>
+    <b style='color: #38bdf8; font-size: 1.05rem;'>Dongavath Pradeep</b>
 </div>
 """, unsafe_allow_html=True)
