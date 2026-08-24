@@ -36,7 +36,7 @@ html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* IT Infrastructure & Cyber Grid Background */
+/* IT Infrastructure Background */
 .stApp {
     background-color: #0b0f19;
     background-image: 
@@ -48,7 +48,7 @@ html, body, [class*="css"] {
     background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
 }
 
-/* Vibrant Gradient Title */
+/* Title Gradient */
 .brand-title {
     background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
     -webkit-background-clip: text;
@@ -59,18 +59,18 @@ html, body, [class*="css"] {
     letter-spacing: -0.5px;
 }
 
-/* Unified Upload Hero Card */
+/* Unified Center Upload Box */
 .unified-upload-box {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.7));
     border: 1.5px dashed rgba(56, 189, 248, 0.5);
     border-radius: 18px;
-    padding: 26px 20px 20px 20px;
+    padding: 25px;
     margin: 10px 0 25px 0;
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.05);
 }
 
-/* Interactive Floating Step Cards (Curser Move / Hover Animation) */
+/* Interactive Floating Step Cards */
 .step-card {
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
     border: 1px solid rgba(56, 189, 248, 0.2);
@@ -104,7 +104,7 @@ html, body, [class*="css"] {
     box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
 }
 
-/* Job & Feature Cards */
+/* Gradient Card */
 .gradient-card {
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9));
     border: 1px solid rgba(56, 189, 248, 0.25);
@@ -146,17 +146,15 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# --- Top Header Section (Smart Job Finder) ---
+# --- Top Header Section ---
 st.markdown("""
-<div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155; margin-bottom: 20px;'>
-    <div>
-        <h1 class='brand-title'>⚡ Smart Job Finder</h1>
-        <p style='margin:0; color:#94a3b8; font-size:0.92rem;'>Next-Gen Semantic Vector Matcher & Autonomous Career Intelligence</p>
-    </div>
+<div style='padding-bottom:14px; border-bottom:1px solid #334155; margin-bottom: 20px;'>
+    <h1 class='brand-title'>⚡ Smart Job Finder</h1>
+    <p style='margin:0; color:#94a3b8; font-size:0.92rem;'>Next-Gen Semantic Vector Matcher & Autonomous Career Intelligence</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- Sidebar Candidate Profile & Ingestion ---
+# --- Sidebar Candidate Profile ---
 with st.sidebar:
     st.markdown("<h3 style='color:#38bdf8;'>👤 Candidate Profile</h3>", unsafe_allow_html=True)
     profile = get_candidate_profile()
@@ -195,21 +193,21 @@ if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
 
 # ========================================================
-# 1. TAB: HOME (Unified Upload -> Hover Steps -> Live Matching)
+# 1. TAB: HOME (Ingest -> Upload directly underneath -> Steps -> Match)
 # ========================================================
 with tab_home:
-    # A. Unified Ingest Box
+    # Unified Ingest Card with Upload directly inside/below
     st.markdown("""
     <div class='unified-upload-box'>
-        <div style='text-align: center;'>
+        <div style='text-align: center; margin-bottom: 15px;'>
             <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
-            <p style='color:#94a3b8; font-size:0.9rem; margin:6px 0 16px 0;'>
+            <p style='color:#94a3b8; font-size:0.9rem; margin:4px 0 0 0;'>
                 Upload your PDF resume to generate dense vector embeddings and extract skill matrices.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-    up_c1, up_c2, up_c3 = st.columns([1, 2.2, 1])
+    up_c1, up_c2, up_c3 = st.columns([1, 2.5, 1])
     with up_c2:
         uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
         if uploaded_file and st.button("🚀 Process & Build Embeddings", use_container_width=True):
@@ -227,7 +225,7 @@ with tab_home:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # B. Interactive Steps with Cursor Hover Movement
+    # Interactive Floating Steps (Movement on Cursor Hover)
     st.markdown("<h4 style='color:#38bdf8; text-align:center; margin: 30px 0 18px 0;'>🧭 How Smart Job Finder Fetches Your Best Matches</h4>", unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
 
@@ -269,7 +267,7 @@ with tab_home:
 
     st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
 
-    # C. Live Job Matching Section
+    # Live Job Matching Section
     st.markdown("<h4 style='color:#f8fafc;'>🎯 Live Neural Job Matching Feed</h4>", unsafe_allow_html=True)
     candidate_skills = profile.get("skills", []) if profile else []
     default_role = ", ".join(candidate_skills[:3]) if candidate_skills else "Python, SQL, Machine Learning"
