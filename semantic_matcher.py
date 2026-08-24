@@ -1,21 +1,21 @@
 import numpy as np
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
+from sklearn.metrics.pairwise import cosine_similarity
 
-@st.cache_resource
-def load_embedding_model():
+@st.cache_resource(show_spinner=False)
+def get_model():
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer('all-MiniLM-L6-v2')
 
 def calculate_semantic_fit(candidate_profile: dict, job_postings: list) -> list:
     if not job_postings or not candidate_profile:
         return job_postings
 
-    model = load_embedding_model()
+    model = get_model()
 
     candidate_skills_str = ", ".join(candidate_profile.get("skills", []))
     candidate_summary = candidate_profile.get("summary", "")
-    candidate_context = f"Skills: {candidate_skills_str}. Experience & Summary: {candidate_summary}"
+    candidate_context = f"Skills: {candidate_skills_str}. Summary: {candidate_summary}"
 
     candidate_vector = model.encode([candidate_context])
 
