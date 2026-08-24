@@ -10,23 +10,55 @@ from db_manager import init_db, store_candidate_profile, get_candidate_profile, 
 from semantic_matcher import calculate_semantic_fit
 from ui_styles import CUSTOM_CSS
 
+# --- Page Configuration ---
 st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_icon="⚡", layout="wide")
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
+# --- Custom Styling for Developer Branding ---
 st.markdown("""
-<div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid #334155;'>
+<style>
+.dev-badge {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #38bdf8;
+    color: #f8fafc;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.footer-container {
+    margin-top: 50px;
+    padding: 20px;
+    border-top: 1px solid #334155;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- Top Header Section with "Engineered By" ---
+st.markdown("""
+<div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155;'>
     <div>
         <h2 style='margin:0; color:#f8fafc; font-size:1.6rem;'>⚡ JobNexus Neural Console</h2>
         <p style='margin:0; color:#94a3b8; font-size:0.9rem;'>Vector Embeddings & Semantic Skill Gap Architecture</p>
     </div>
-    <div style='display: flex; gap: 8px;'>
-        <span style='background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; font-family:monospace; padding:4px 10px; border-radius:4px; font-size: 0.8rem;'>EMBEDDINGS: all-MiniLM-L6-v2</span>
-        <span style='background:#1e293b; border:1px solid #34d399; color:#34d399; font-family:monospace; padding:4px 10px; border-radius:4px; font-size: 0.8rem;'>SQLITE PROD</span>
+    <div style='display: flex; gap: 10px; align-items: center;'>
+        <div class='dev-badge'>
+            🚀 Engineered by <span style='color: #38bdf8; font-weight: bold;'>Dongavath Pradeep</span>
+        </div>
+        <span style='background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>EMBEDDINGS: all-MiniLM-L6-v2</span>
+        <span style='background:#1e293b; border:1px solid #34d399; color:#34d399; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>SQLITE PROD</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
+# --- Sidebar Candidate Ingestion & Info ---
 with st.sidebar:
     st.markdown("<h3 style='color:#38bdf8;'>📄 Candidate Ingestion</h3>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
@@ -51,6 +83,18 @@ with st.sidebar:
         st.markdown(f"**Candidate:** `{profile.get('full_name')}`\n\n**Contact:** `{profile.get('email')}`")
         st.markdown("".join([f"<span class='tag-match'>{s}</span>" for s in skills]), unsafe_allow_html=True)
 
+    # Sidebar Developer Tag with Your Exact Links
+    st.markdown("<hr style='border:0.5px solid #334155; margin-top:30px;'>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align: center; color: #94a3b8; font-size: 0.85rem;'>
+        <b>System Architect</b><br>
+        <span style='color: #38bdf8; font-weight: bold;'>Dongavath Pradeep</span><br><br>
+        <a href='https://github.com/DongavathPradeep' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>🔗 GitHub Profile</a><br>
+        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- Navigation Tabs ---
 tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Neural Job Feed", "📊 Gap Intelligence", "🗺️ 7-Day Bridge Roadmap", "📋 Application Tracker", "📬 Automation & SMTP"
 ])
@@ -132,3 +176,10 @@ with tab_alerts:
     if st.button("Trigger Email Digest", use_container_width=True) and profile:
         send_email_alert(profile.get("email"), profile.get("full_name"), results)
         st.success("Alert processed via SMTP.")
+
+# --- Bottom Footer ---
+st.markdown("""
+<div class='footer-container'>
+    ⚡ <b>JobNexus AI Engine</b> • Architected & Engineered by <b style='color:#38bdf8;'>Dongavath Pradeep</b> • Built with Python, Transformers & Streamlit
+</div>
+""", unsafe_allow_html=True)
