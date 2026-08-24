@@ -30,7 +30,7 @@ custom_ui_style = """
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* Make All Streamlit Tabs Crystal Clear & Highly Visible */
+    /* Streamlit Tabs Cyan Accent */
     button[data-baseweb="tab"] {
         background-color: rgba(30, 41, 59, 0.7) !important;
         border: 1px solid #334155 !important;
@@ -136,6 +136,15 @@ custom_ui_style = """
         margin-right: 6px;
         display: inline-block;
         font-weight: 700;
+    }
+
+    /* Steps Guide Box */
+    .guide-card {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px dashed rgba(56, 189, 248, 0.4);
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 15px;
     }
     </style>
 """
@@ -321,9 +330,9 @@ with st.sidebar:
         else:
             st.caption("No skills extracted.")
     else:
-        st.info("Upload a resume to calculate ATS readiness & match scores.")
+        st.info("Upload your resume to begin analyzing.")
 
-# --- Master Console Tabs with Strong Visibility ---
+# --- Master Console Tabs ---
 tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Opportunity Feed", 
     "📊 Skill Gap Analytics",
@@ -332,13 +341,32 @@ tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "📬 Automation & SMTP"
 ])
 
+# Initialize session states
 if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
+if "role_input" not in st.session_state:
+    st.session_state["role_input"] = "Python Developer"
 
 with tab_feed:
+    # Quick Suggested Role Chips
+    st.caption("⚡ Quick Roles:")
+    chip_col1, chip_col2, chip_col3, chip_col4 = st.columns(4)
+    if chip_col1.button("🐍 Python Developer", use_container_width=True):
+        st.session_state["role_input"] = "Python Developer"
+        st.rerun()
+    if chip_col2.button("📊 Data Engineer", use_container_width=True):
+        st.session_state["role_input"] = "Data Engineer"
+        st.rerun()
+    if chip_col3.button("🌐 Full Stack Engineer", use_container_width=True):
+        st.session_state["role_input"] = "Full Stack Engineer"
+        st.rerun()
+    if chip_col4.button("☁️ DevOps / Cloud", use_container_width=True):
+        st.session_state["role_input"] = "DevOps Engineer"
+        st.rerun()
+
     col1, col2, col3, col4 = st.columns([2, 1.2, 1.2, 0.8])
     with col1:
-        role_query = st.text_input("Target Stack / Role", value="Python Developer")
+        role_query = st.text_input("Target Stack / Role", value=st.session_state["role_input"])
     with col2:
         exp_level = st.selectbox("Experience Tier", ["Fresher / Entry Level", "Experienced (1-3 yrs)", "Senior (4+ yrs)", "All"])
     with col3:
@@ -349,7 +377,7 @@ with tab_feed:
 
     if search_btn and role_query:
         if not profile:
-            st.error("Please upload a candidate resume first.")
+            st.error("Please upload a candidate resume from the left sidebar first.")
         else:
             search_term = f"{role_query} fresher" if exp_level == "Fresher / Entry Level" else role_query
             with st.spinner("Fetching matching live roles..."):
@@ -414,7 +442,7 @@ with tab_feed:
                     st.markdown(f"[🚀 **Apply on Portal**]({job.get('url')})")
             with card_c2:
                 with st.expander("📝 Application Pitch"):
-                    pitch_text = f"Hi Hiring Team at {job.get('company')},\n\nI am applying for the {job.get('title')} role. With my background in {', '.join(matched) if matched else 'core software development'}, I can contribute immediately to your engineering workflows.\n\nBest regards,\n{profile.get('full_name')}"
+                    pitch_text = f"Hi Hiring Team at {job.get('company')},\n\nI am applying for the {job.get('title')} role. With my background in {', '.join(matched) if matched else 'core software engineering'}, I can contribute immediately to your development workflows.\n\nBest regards,\n{profile.get('full_name')}"
                     st.text_area("Cold Application Note", value=pitch_text, height=120, key=f"pitch_{idx}")
             with card_c3:
                 with st.expander("🎯 Mock Interview Qs"):
@@ -435,6 +463,17 @@ with tab_feed:
                 if new_status != current_status:
                     update_job_status(job.get("title"), job.get("company"), new_status)
                     st.rerun()
+    else:
+        st.markdown("""
+        <div class='guide-card'>
+            <h4 style='color: #38bdf8; margin:0 0 6px 0;'>💡 How to Get Started:</h4>
+            <ol style='color: #94a3b8; margin: 0; padding-left: 20px; font-size: 0.9rem;'>
+                <li>Upload your Resume (PDF) in the left sidebar and click <b>Parse & Ingest Profile</b>.</li>
+                <li>Pick a suggested Quick Role chip or enter your target role above.</li>
+                <li>Click <b>Run Query</b> to discover live matching roles, skill gap analytics, and interview questions.</li>
+            </ol>
+        </div>
+        """, unsafe_allow_html=True)
 
 with tab_analytics:
     st.markdown("<h3 style='color:#38bdf8; font-weight:700;'>📊 Market Demand vs Profile Gap Intelligence</h3>", unsafe_allow_html=True)
