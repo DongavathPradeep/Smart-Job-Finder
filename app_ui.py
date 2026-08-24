@@ -8,281 +8,282 @@ from job_search import search_jobs
 from email_notifier import send_email_alert
 from db_manager import init_db, store_candidate_profile, get_candidate_profile, update_job_status, get_job_statuses
 from semantic_matcher import calculate_semantic_fit
+from ui_styles import CUSTOM_CSS
 
-# --- Job Roles Dataset for Auto-Suggestions ---
+# --- Comprehensive Cross-Domain Job Roles Dataset ---
 MASTER_JOB_ROLES = [
+    # Python & AI
     "Python Developer", "Python Backend Developer", "Python Full Stack Developer",
     "Python Django / FastAPI Developer", "Python Data Engineer", "Python Machine Learning Engineer",
-    "Java Developer", "Java Full Stack Developer", "Spring Boot Engineer",
-    "React.js Developer", "Frontend Developer", "Full Stack Web Developer", "Node.js Developer",
-    "Data Analyst", "Data Scientist", "DevOps Engineer", "Cloud Engineer (AWS/Azure)",
-    "QA Automation Engineer", "Selenium Tester", "AI / Prompt Engineer"
+    "Python Automation Tester", "AI Engineer", "Generative AI Specialist", "Prompt Engineer",
+    "NLP Engineer", "Computer Vision Engineer", "MLOps Engineer",
+
+    # Java Ecosystem
+    "Java Developer", "Java Full Stack Developer", "Java Spring Boot Microservices Engineer",
+    "Java Backend Architect", "Core Java Developer",
+
+    # Frontend & Full Stack
+    "Frontend Developer", "React.js Developer", "Angular Developer", "Vue.js Developer",
+    "Node.js Backend Developer", "Full Stack Web Developer", "MERN Stack Developer",
+    "MEAN Stack Developer", "Next.js Full Stack Engineer", "UI/UX Developer",
+
+    # Data Science & Analytics
+    "Data Analyst", "Data Scientist", "Business Intelligence (BI) Analyst",
+    "Power BI / Tableau Developer", "Big Data Engineer (Spark/Hadoop)", "Snowflake Data Engineer",
+
+    # Cloud & DevOps
+    "DevOps Engineer", "Cloud Engineer (AWS/Azure/GCP)", "Kubernetes / Docker Specialist",
+    "Site Reliability Engineer (SRE)", "Terraform Infrastructure Engineer", "Linux System Administrator",
+
+    # QA & Testing
+    "QA Automation Engineer", "Selenium Automation Tester", "Manual QA Tester",
+    "Performance Test Engineer (JMeter)", "API Testing Specialist (Postman)",
+
+    # Mobile & Databases
+    "Android Developer (Kotlin)", "iOS Developer (Swift)", "Flutter Mobile Engineer", "React Native Developer",
+    "Cybersecurity Analyst", "SQL / Database Administrator (DBA)", "PostgreSQL Backend Developer"
 ]
 
 # --- Page Configuration ---
-st.set_page_config(page_title="SmartJobApply | AI Job Search Co-Pilot", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_icon="⚡", layout="wide")
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# --- Custom Styling for SaaS Light-Gradient Theme ---
+# --- Custom Styling ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #1e293b;
-}
-
-.stApp {
-    background: radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.6) 0%, rgba(243, 232, 255, 0.7) 40%, rgba(255, 255, 255, 0.9) 100%);
-}
-
-/* Hero Section */
-.hero-badge {
-    display: inline-block;
-    background: #ede9fe;
-    color: #6366f1;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 6px 18px;
-    border-radius: 50px;
-    margin-bottom: 12px;
-}
-.hero-title {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: #334155;
-    line-height: 1.2;
-    margin-bottom: 8px;
-}
-.hero-subtitle {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #d97706;
-    margin-bottom: 25px;
-}
-
-/* Feature Badges */
-.feature-pill-row {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-}
-.pill {
-    padding: 8px 16px;
-    border-radius: 50px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.pill-red { border: 1px solid #fecaca; color: #dc2626; }
-.pill-blue { border: 1px solid #bfdbfe; color: #2563eb; }
-.pill-green { border: 1px solid #bbf7d0; color: #16a34a; }
-.pill-purple { border: 1px solid #ddd6fe; color: #7c3aed; }
-.pill-amber { border: 1px solid #fde68a; color: #d97706; }
-
-/* 4 Metrics Stats Banner */
-.stats-card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 28px 20px;
-    margin: 25px auto 40px auto;
-    max-width: 820px;
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.08);
-    border: 1px solid #e2e8f0;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    text-align: center;
-}
-.stat-num { font-size: 1.8rem; font-weight: 800; color: #6366f1; }
-.stat-lbl { font-size: 0.8rem; color: #64748b; font-weight: 600; }
-
-/* Job Cards & Badges */
-.job-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-}
-.tag-match { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin-right: 4px; }
-.tag-gap { background: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin-right: 4px; }
-
-/* Footer */
 .footer-container {
-    margin-top: 60px;
-    padding: 25px;
-    border-top: 1px solid #e2e8f0;
+    margin-top: 50px;
+    padding: 20px;
+    border-top: 1px solid #334155;
     text-align: center;
-    color: #64748b;
+    color: #94a3b8;
     font-size: 0.95rem;
     line-height: 1.6;
+}
+.role-suggestion-tag {
+    display: inline-block;
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    padding: 4px 10px;
+    margin: 4px 4px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: monospace;
+}
+.upload-hero-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1.5px dashed #38bdf8;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    margin: 15px 0 25px 0;
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.08);
+}
+.step-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+    height: 100%;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.step-number {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: 800;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar Candidate Profile & Ingestion ---
+# --- Top Header Section ---
+st.markdown("""
+<div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155;'>
+    <div>
+        <h2 style='margin:0; color:#f8fafc; font-size:1.6rem;'>⚡ JobNexus Neural Console</h2>
+        <p style='margin:0; color:#94a3b8; font-size:0.9rem;'>Vector Embeddings & Semantic Skill Gap Architecture</p>
+    </div>
+    <div style='display: flex; gap: 8px;'>
+        <span style='background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>EMBEDDINGS: all-MiniLM-L6-v2</span>
+        <span style='background:#1e293b; border:1px solid #34d399; color:#34d399; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>SQLITE PROD</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- Sidebar Quick Info & Branding ---
 with st.sidebar:
-    st.markdown("<h3 style='color:#4f46e5;'>📄 Resume Ingestion</h3>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
-    if uploaded_file and st.button("Parse & Build Embeddings", use_container_width=True):
-        temp_path = f"temp_{uploaded_file.name}"
-        with open(temp_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        try:
-            store_candidate_profile(parse_resume(temp_path))
-            st.success("Candidate vectors stored successfully!")
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            
+    st.markdown("<h3 style='color:#38bdf8;'>👤 Candidate Profile</h3>", unsafe_allow_html=True)
     profile = get_candidate_profile()
     if profile:
         skills = profile.get("skills", [])
         ats = min(95, max(50, len(skills) * 12)) if skills else 30
-        st.metric("Neural ATS Match Score", f"{ats}/100")
+        st.metric("Neural ATS Alignment", f"{ats}/100")
         st.progress(ats / 100)
-        st.markdown(f"**Candidate:** `{profile.get('full_name')}`\n\n**Email:** `{profile.get('email')}`")
+        st.markdown(f"**Name:** `{profile.get('full_name')}`\n\n**Email:** `{profile.get('email')}`")
         st.markdown("".join([f"<span class='tag-match'>{s}</span>" for s in skills]), unsafe_allow_html=True)
+    else:
+        st.info("No active candidate profile loaded. Upload your resume in the Home page to initialize vectors.")
 
-    st.markdown("<hr style='border:0.5px solid #e2e8f0; margin-top:30px;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border:0.5px solid #334155; margin-top:30px;'>", unsafe_allow_html=True)
     st.markdown("""
-    <div style='text-align: center; color: #64748b; font-size: 0.85rem;'>
+    <div style='text-align: center; color: #94a3b8; font-size: 0.85rem;'>
         <b>System Architect</b><br>
-        <span style='color: #4f46e5; font-weight: bold;'>Dongavath Pradeep</span><br><br>
-        <a href='https://github.com/DongavathPradeep' target='_blank' style='color:#4f46e5; text-decoration:none; font-weight:600;'>🔗 GitHub Profile</a><br>
-        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='color:#4f46e5; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
+        <span style='color: #38bdf8; font-weight: bold;'>Dongavath Pradeep</span><br><br>
+        <a href='https://github.com/DongavathPradeep' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>🔗 GitHub Profile</a><br>
+        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
     </div>
     """, unsafe_allow_html=True)
 
-# --- Top Navigation Bar ---
-nav_col1, nav_col2, nav_col3 = st.columns([1.5, 4, 1.2])
-
-with nav_col1:
-    st.markdown("<div style='font-size:1.5rem; font-weight:800; color:#4f46e5; padding-top:4px;'>SmartJobApply</div>", unsafe_allow_html=True)
-
-with nav_col2:
-    current_page = st.radio(
-        "Navigation",
-        ["Home", "Search Jobs", "About / Features", "Saved Jobs", "Auto-Apply & Alerts"],
-        horizontal=True,
-        label_visibility="collapsed"
-    )
-
-with nav_col3:
-    st.markdown("<div style='text-align:right;'><span style='background:#4f46e5; color:white; padding:8px 18px; border-radius:8px; font-size:0.85rem; font-weight:700;'>Login / Sign Up</span></div>", unsafe_allow_html=True)
-
-st.markdown("<hr style='border: 0.5px solid #e2e8f0; margin: 10px 0 25px 0;'>", unsafe_allow_html=True)
+# --- Main Navigation Tabs ---
+tab_home, tab_features, tab_about = st.tabs(["🏠 Home", "⚡ Features", "💡 About Project"])
 
 # ==========================================
-# 1. PAGE: HOME
+# 1. HOME TAB (Upload -> Steps -> Search)
 # ==========================================
-if current_page == "Home":
+with tab_home:
+    # A. Central Resume Upload Box
     st.markdown("""
-    <div style='text-align: center;'>
-        <div class='hero-badge'>⭐ AI-Powered Job Matching</div>
-        <div class='hero-title'>Your AI Job Search Co-Pilot</div>
-        <div class='hero-subtitle'>Faster Applications. Smarter Matches. Better Opportunities.</div>
-        <div class='feature-pill-row'>
-            <div class='pill pill-red'>🎯 AI Match Score</div>
-            <div class='pill pill-blue'>📄 Auto-Fill in 2 Secs</div>
-            <div class='pill pill-green'>⚡ Instant Auto-Apply</div>
-            <div class='pill pill-purple'>⭐ AI-Generated Messages</div>
-            <div class='pill pill-amber'>🔔 Smart Job Alerts</div>
-        </div>
+    <div class='upload-hero-card'>
+        <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
+        <p style='color:#94a3b8; font-size:0.9rem; margin-top:4px;'>Upload your PDF resume to generate 384-dimensional vector embeddings and extract skill matrices.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # 4 Cards Stat Box
-    st.markdown("""
-    <div class='stats-card'>
-        <div>
-            <div class='stat-num'>10,000+</div>
-            <div class='stat-lbl'>Applications Filled</div>
-        </div>
-        <div>
-            <div class='stat-num'>5x</div>
-            <div class='stat-lbl'>Faster Job Search</div>
-        </div>
-        <div>
-            <div class='stat-num'>10+</div>
-            <div class='stat-lbl'>Job Boards Unified</div>
-        </div>
-        <div>
-            <div class='stat-num'>10 hrs</div>
-            <div class='stat-lbl'>Saved Per Week</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    up_col1, up_col2, up_col3 = st.columns([1, 2, 1])
+    with up_col2:
+        uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
+        if uploaded_file and st.button("🚀 Parse & Generate Vectors", use_container_width=True):
+            temp_path = f"temp_{uploaded_file.name}"
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            try:
+                parsed_data = parse_resume(temp_path)
+                store_candidate_profile(parsed_data)
+                st.success("✅ Resume parsed and candidate embeddings initialized successfully!")
+                st.rerun()
+            finally:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
-    # Call to Action Hero Box
-    c_btn1, c_btn2, c_btn3 = st.columns([1.5, 1, 1.5])
-    with c_btn2:
-        if st.button("🚀 Start Your Job Search Now", use_container_width=True):
-            st.info("Navigate to 'Search Jobs' in the top menu to run live vector matching!")
+    st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
 
-# ==========================================
-# 2. PAGE: SEARCH JOBS (Core Engine)
-# ==========================================
-elif current_page == "Search Jobs":
-    st.markdown("<h3 style='color:#334155;'>🔍 Live Neural Job Feed & Vector Matching</h3>", unsafe_allow_html=True)
+    # B. 4-Step Guide: How to Fetch and Land Your Job
+    st.markdown("<h4 style='color:#38bdf8; text-align:center; margin-bottom:18px;'>🧭 How to Fetch & Match Your Target Jobs</h4>", unsafe_allow_html=True)
+    s1, s2, s3, s4 = st.columns(4)
+
+    with s1:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>1</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>Ingest Resume</h5>
+            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>Upload your PDF above. NLP extracts extracted tech skills, experience, and contact metadata.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with s2:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>2</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>Keyword Live Search</h5>
+            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>Type your target skill/role below to see related industry domains and live postings.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with s3:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>3</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>Semantic Match & Gaps</h5>
+            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>The neural engine computes cosine similarity between your resume and Job Descriptions.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with s4:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>4</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>Apply & Track</h5>
+            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>Apply directly via portals, update application status, and trigger SMTP email alerts.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
+
+    # C. Job Search & Live Vector Matching
+    st.markdown("<h4 style='color:#f8fafc;'>🎯 Live Neural Job Search Feed</h4>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([2.2, 1.1, 1.1, 0.8])
     
-    col1, col2, col3, col4 = st.columns([2.2, 1.1, 1.1, 0.9])
-    role_query = col1.text_input("Target Role / Keyword", value="Python")
-    exp_level = col2.selectbox("Experience", ["Fresher", "1-3 yrs", "4+ yrs", "All"])
+    if "role_input" not in st.session_state:
+        st.session_state["role_input"] = "Python"
+
+    role_query = col1.text_input(
+        "Target Role / Skill Keyword", 
+        value=st.session_state["role_input"],
+        help="Type any keyword (e.g., Python, Java, React, Data, Cloud) to see related market roles"
+    )
+    
+    exp_level = col2.selectbox("Experience", ["Fresher / Entry Level", "1-3 yrs", "4+ yrs", "All"])
     location_query = col3.selectbox("Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Remote"])
     
-    # Associated Live Roles Tags
+    # Associated Live Roles Tags Display
     if role_query.strip():
         matching_roles = [r for r in MASTER_JOB_ROLES if role_query.strip().lower() in r.lower()]
         if matching_roles:
-            tags_html = "".join([f"<span style='background:#f1f5f9; color:#475569; padding:3px 8px; margin:2px; border-radius:4px; font-size:0.75rem; display:inline-block;'>{r}</span>" for r in matching_roles])
-            st.markdown(f"<div style='margin-top:-10px; margin-bottom:12px;'><small style='color:#64748b;'><b>Related Roles:</b></small> {tags_html}</div>", unsafe_allow_html=True)
+            tags_html = "".join([f"<span class='role-suggestion-tag'>{r}</span>" for r in matching_roles])
+            st.markdown(f"<div style='margin-top:-10px; margin-bottom:12px;'><small style='color:#94a3b8;'><b>Associated Market Roles:</b></small><br>{tags_html}</div>", unsafe_allow_html=True)
 
     if "jobs_data" not in st.session_state:
         st.session_state["jobs_data"] = []
 
-    if col4.button("Run Match", use_container_width=True) and profile:
-        with st.spinner(f"Computing cosine distance for '{role_query}' across live JD embeddings..."):
-            raw = search_jobs(role=role_query, location=location_query)
-            st.session_state["jobs_data"] = calculate_semantic_fit(profile, raw)
+    active_candidate = get_candidate_profile()
+
+    if col4.button("Run Vector Match", use_container_width=True):
+        if not active_candidate:
+            st.warning("⚠️ Please upload your resume first using the upload box above!")
+        else:
+            with st.spinner(f"Computing cosine distance for '{role_query}' across live JD embeddings..."):
+                raw = search_jobs(role=role_query, location=location_query)
+                st.session_state["jobs_data"] = calculate_semantic_fit(active_candidate, raw)
 
     results = st.session_state.get("jobs_data", [])
     statuses = get_job_statuses()
-
+    
     if results:
         m1, m2, m3 = st.columns(3)
         m1.metric("Roles Evaluated", len(results))
         avg_score = round(sum([j.get("semantic_score", 0) for j in results]) / len(results), 1)
-        m2.metric("Mean Semantic Match", f"{avg_score}%")
-        m3.metric("High Match (≥70%)", len([j for j in results if j.get("semantic_score", 0) >= 70]))
+        m2.metric("Mean Semantic Similarity", f"{avg_score}%")
+        m3.metric("High Semantic Fit (≥70%)", len([j for j in results if j.get("semantic_score", 0) >= 70]))
         
         for idx, job in enumerate(results):
-            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])]) or "None"
-            missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])]) or "<span style='color:#16a34a;'>None</span>"
+            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])]) or "None detected"
+            missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])]) or "<span style='color:#34d399;'>None</span>"
             
             st.markdown(f"""
             <div class='job-card'>
-                <div style='display:flex; justify-content:space-between; align-items:center;'>
-                    <h4 style='color:#1e293b; margin:0;'>{job.get('title')}</h4>
-                    <span style='background:#dcfce7; color:#15803d; font-weight:800; padding:4px 12px; border-radius:50px; font-size:0.85rem;'>{job.get('semantic_score')}% Match</span>
+                <div style='display:flex; justify-content:space-between;'>
+                    <h4 style='color:#38bdf8; margin:0;'>{job.get('title')}</h4>
+                    <span style='color:#34d399; font-weight:800;'>{job.get('semantic_score')}% Semantic Match</span>
                 </div>
-                <p style='color:#64748b; font-size:0.9rem; margin:4px 0 10px 0;'><b>{job.get('company')}</b> • {job.get('location')}</p>
-                <div style='margin-bottom:6px; font-size:0.85rem;'><b>Matches:</b> {matched_html}</div>
-                <div style='font-size:0.85rem;'><b>Skill Gaps:</b> {missing_html}</div>
+                <p style='color:#cbd5e1; font-size:0.88rem;'><b>{job.get('company')}</b> • {job.get('location')}</p>
+                <div style='margin-bottom:6px;'><b>Direct Matches:</b> {matched_html}</div>
+                <div><b>Skill Gaps:</b> {missing_html}</div>
             </div>
             """, unsafe_allow_html=True)
             
             c1, c2 = st.columns([3, 1])
             if job.get("url"):
-                c1.markdown(f"[🚀 **Instant Apply via Portal**]({job.get('url')})")
+                c1.markdown(f"[🚀 **Apply via Portal**]({job.get('url')})")
             
             current_status = statuses.get(f"{job.get('title')}--{job.get('company')}", "Not Applied")
             options = ["Not Applied", "Applied", "Interviewing", "Saved"]
@@ -294,51 +295,80 @@ elif current_page == "Search Jobs":
                 st.rerun()
 
 # ==========================================
-# 3. PAGE: ABOUT / FEATURES
+# 2. FEATURES TAB
 # ==========================================
-elif current_page == "About / Features":
-    st.markdown("<h3 style='color:#334155;'>💡 About SmartJobApply AI Architecture</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    **SmartJobApply** అనేది కేవలం సాధారణ జాబ్ సెర్చ్ ఇంజిన్ మాత్రమే కాదు; ఇది **NLP Semantic Embeddings & Skill Gap Intelligence** తో నిర్మించిన అధునాతన కెరీర్ అసిస్టెంట్.
-
-    #### 🌟 ముఖ్యమైన ఫీచర్లు (Core Features):
-    * **1. Dense Vector Embeddings:** `sentence-transformers/all-MiniLM-L6-v2` మోడల్ ద్వారా మీ రెజ్యూమ్ మరియు కంపెనీ JD ల మధ్య కచ్చితమైన కోసైన్ సిమిలారిటీ స్కోర్ లెక్కిస్తుంది.
-    * **2. Instant Skill Gap Analysis:** మీరు టార్గెట్ చేసిన రోల్‌కు మీ రెజ్యూమ్‌లో ఏయే స్కిల్స్ సరిపోతున్నాయి, ఏవి తక్కువగా ఉన్నాయో (Missing Skills) స్పష్టంగా చూపిస్తుంది.
-    * **3. Application Lifecycle Tracker:** SQLite డేటాబేస్ ద్వారా మీరు అప్లై చేసిన ఉద్యోగాల స్టేటస్ (`Applied`, `Interviewing`, `Saved`) ను సులభంగా ట్రాక్ చేస్తుంది.
-    * **4. Automated Email Dispatch:** అధిక మ్యాచ్ స్కోర్ ఉన్న ఉద్యోగాల జాబితాను ఆటోమేటిక్‌గా మీ ఈమెయిల్‌కు అలర్ట్ రూపంలో పంపుతుంది.
-    """)
-
-# ==========================================
-# 4. PAGE: SAVED JOBS (Application Tracker)
-# ==========================================
-elif current_page == "Saved Jobs":
-    st.markdown("<h3 style='color:#334155;'>📋 Your Application & Saved Jobs Tracker</h3>", unsafe_allow_html=True)
-    conn = sqlite3.connect("candidate.db")
-    df = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Status', updated_at AS 'Last Updated' FROM applications", conn)
-    conn.close()
+with tab_features:
+    st.markdown("<h3 style='color:#38bdf8;'>⚡ JobNexus Platform Features</h3>", unsafe_allow_html=True)
     
+    f1, f2 = st.columns(2)
+    with f1:
+        st.markdown("""
+        #### 🎯 1. Neural Semantic Matcher
+        * Moves beyond simple keyword-counting ATS systems.
+        * Evaluates actual contextual similarity between your technical background and job requirements using dense vector representations.
+        
+        #### 🔍 2. Skill Gap Intelligence & Bridge
+        * Instantly highlights missing tools, frameworks, and domain knowledge per JD.
+        * Generates a dynamic 7-day learning roadmap tailored to close specific candidate gaps.
+        """)
+    with f2:
+        st.markdown("""
+        #### 📋 3. Application Lifecycle Tracker
+        * Integrated SQLite persistence layer.
+        * Real-time tracking of jobs marked as `Applied`, `Interviewing`, or `Saved` without page reload data loss.
+
+        #### 📬 4. Automated SMTP Alert Dispatcher
+        * Allows 1-click dispatch of matched role digests directly to the candidate's verified email address.
+        """)
+
+    st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
+    
+    # Live Application Tracker Table view inside features
+    st.markdown("#### 📊 Current Application Tracker (SQLite DB)")
+    conn = sqlite3.connect("candidate.db")
+    df = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Status', updated_at AS 'Updated' FROM applications", conn)
+    conn.close()
     if not df.empty:
         st.dataframe(df, use_container_width=True)
     else:
-        st.info("ఇంకా ఏ ఉద్యోగాల స్టేటస్ అప్‌డేట్ చేయలేదు. 'Search Jobs' పేజీలో జాబ్స్‌ను 'Saved' లేదా 'Applied' గా మార్చండి.")
+        st.info("No applications logged yet. Search jobs in the Home tab and update their status!")
 
 # ==========================================
-# 5. PAGE: AUTO-APPLY & ALERTS
+# 3. ABOUT TAB
 # ==========================================
-elif current_page == "Auto-Apply & Alerts":
-    st.markdown("<h3 style='color:#334155;'>⚡ Auto-Apply Engine & Email Dispatcher</h3>", unsafe_allow_html=True)
-    if profile:
-        st.write(f"Candidate Target: **{profile.get('full_name')}** ({profile.get('email')})")
-        if st.button("📬 Trigger Instant Email Digest", use_container_width=True):
-            send_email_alert(profile.get("email"), profile.get("full_name"), st.session_state.get("jobs_data", []))
-            st.success("High-matching jobs digest dispatched to your inbox via SMTP!")
-    else:
-        st.warning("దయచేసి సైడ్‌బార్‌లో మీ రెజ్యూమ్ PDF అప్‌లోడ్ చేయండి.")
+with tab_about:
+    st.markdown("<h3 style='color:#38bdf8;'>💡 About JobNexus Architecture</h3>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    **JobNexus** is an end-to-end AI-powered career intelligence engine engineered to streamline job discovery, semantic matching, and application tracking for modern software engineers.
+    
+    #### 🛠️ Tech Stack & Neural Architecture:
+    * **NLP & Vector Embeddings:** Hugging Face `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional dense vectors).
+    * **Semantic Distance:** Vector cosine similarity computed via PyTorch/Scikit-Learn.
+    * **Resume Ingestion Engine:** `pdfminer.six` / `PyPDF2` regex-driven entity extraction.
+    * **Database & Persistence:** SQLite relational tables (`candidate_profiles`, `applications`).
+    * **UI Framework:** Streamlit Custom CSS & Responsive Layout Components.
+    * **Notification Gateway:** Python `smtplib` + MIME email formatting.
+    """)
+    
+    st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style='background:#1e293b; border:1px solid #38bdf8; border-radius:12px; padding:20px; text-align:center;'>
+        <h4 style='color:#f8fafc; margin:0;'>👨‍💻 System Architect & Engineer</h4>
+        <h3 style='color:#38bdf8; margin:6px 0 12px 0;'>Dongavath Pradeep</h3>
+        <p style='color:#cbd5e1; font-size:0.9rem; max-width:600px; margin:0 auto 15px auto;'>
+            Specialized in AI-driven tools, NLP architectures, semantic search systems, and scalable full-stack Python engineering.
+        </p>
+        <a href='https://github.com/DongavathPradeep' target='_blank' style='background:#0f172a; border:1px solid #38bdf8; color:#38bdf8; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; margin-right:10px;'>🔗 GitHub Profile</a>
+        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='background:#0284c7; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- Bottom Footer (2 Lines) ---
 st.markdown("""
 <div class='footer-container'>
-    ⚡ <b>SmartJobApply AI Engine Architected & Engineered by</b><br>
-    <b style='color: #4f46e5; font-size: 1.05rem;'>Dongavath Pradeep</b>
+    ⚡ <b>JobNexus AI Engine Architected & Engineered by</b><br>
+    <b style='color: #38bdf8; font-size: 1.05rem;'>Dongavath Pradeep</b>
 </div>
 """, unsafe_allow_html=True)
