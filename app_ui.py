@@ -15,21 +15,9 @@ st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_i
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# --- Custom Styling for Developer Branding ---
+# --- Custom Styling for Footer ---
 st.markdown("""
 <style>
-.dev-badge {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1px solid #38bdf8;
-    color: #f8fafc;
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
 .footer-container {
     margin-top: 50px;
     padding: 20px;
@@ -41,17 +29,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- Top Header Section with "Engineered By" ---
+# --- Top Header Section (Badge Removed) ---
 st.markdown("""
 <div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155;'>
     <div>
         <h2 style='margin:0; color:#f8fafc; font-size:1.6rem;'>⚡ JobNexus Neural Console</h2>
         <p style='margin:0; color:#94a3b8; font-size:0.9rem;'>Vector Embeddings & Semantic Skill Gap Architecture</p>
     </div>
-    <div style='display: flex; gap: 10px; align-items: center;'>
-        <div class='dev-badge'>
-            🚀 Engineered by <span style='color: #38bdf8; font-weight: bold;'>Dongavath Pradeep</span>
-        </div>
+    <div style='display: flex; gap: 8px;'>
         <span style='background:#1e293b; border:1px solid #38bdf8; color:#38bdf8; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>EMBEDDINGS: all-MiniLM-L6-v2</span>
         <span style='background:#1e293b; border:1px solid #34d399; color:#34d399; font-family:monospace; padding:6px 10px; border-radius:6px; font-size: 0.8rem;'>SQLITE PROD</span>
     </div>
@@ -83,7 +68,7 @@ with st.sidebar:
         st.markdown(f"**Candidate:** `{profile.get('full_name')}`\n\n**Contact:** `{profile.get('email')}`")
         st.markdown("".join([f"<span class='tag-match'>{s}</span>" for s in skills]), unsafe_allow_html=True)
 
-    # Sidebar Developer Tag with Your Exact Links
+    # Sidebar Developer Tag
     st.markdown("<hr style='border:0.5px solid #334155; margin-top:30px;'>", unsafe_allow_html=True)
     st.markdown("""
     <div style='text-align: center; color: #94a3b8; font-size: 0.85rem;'>
