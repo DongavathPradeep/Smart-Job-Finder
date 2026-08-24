@@ -2,7 +2,6 @@ import os
 import json
 import sqlite3
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 from resume_parser import parse_resume
@@ -383,24 +382,11 @@ with tab_analytics:
         
         if all_missing:
             gap_counts = pd.Series(all_missing).value_counts().reset_index()
-            gap_counts.columns = ["Skill", "Frequency in Job Postings"]
+            gap_counts.columns = ["Skill", "Frequency"]
+            gap_df = gap_counts.set_index("Skill")
             
-            fig = px.bar(
-                gap_counts.head(8), 
-                x="Frequency in Job Postings", 
-                y="Skill", 
-                orientation="h",
-                color="Frequency in Job Postings",
-                color_continuous_scale="Reds",
-                title="Top Missing Skills in Market for Your Target Role"
-            )
-            fig.update_layout(
-                template="plotly_dark",
-                paper_bgcolor="rgba(17, 24, 39, 0.8)",
-                plot_bgcolor="rgba(17, 24, 39, 0.8)",
-                font_color="#c9d1d9"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            st.caption("Top Missing Skills in Market for Your Target Role (Demand Frequency)")
+            st.bar_chart(gap_df.head(8))
         else:
             st.success("No skill gaps detected across the fetched job feeds!")
     else:
@@ -449,7 +435,7 @@ with tab_alerts:
 # --- Architecture Footer ---
 st.markdown("""
 <div style='margin-top: 50px; padding: 16px 0; border-top: 1px solid #1f2937; display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280;'>
-    <div>Stack: Python 3.11 • Streamlit • SQLite3 • Plotly • BeautifulReport</div>
+    <div>Stack: Python 3.11 • Streamlit • SQLite3 • Pandas</div>
     <div>Engineered by <span style='color: #38bdf8; font-weight: 600;'>D. Pradeep Naik</span></div>
 </div>
 """, unsafe_allow_html=True)
