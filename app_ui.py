@@ -55,7 +55,7 @@ custom_ui_style = """
 
     /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: rgba(3, 7, 18, 0.95) !important;
+        background-color: rgba(3, 7, 18, 0.96) !important;
         border-right: 1px solid #1f2937 !important;
         backdrop-filter: blur(8px) !important;
     }
@@ -71,7 +71,7 @@ custom_ui_style = """
 
     /* Job Glassmorphism Cards */
     .job-card {
-        background-color: rgba(17, 24, 39, 0.88);
+        background-color: rgba(17, 24, 39, 0.90);
         border: 1px solid #1f2937;
         border-radius: 8px;
         padding: 18px;
@@ -99,6 +99,17 @@ custom_ui_style = """
         font-size: 0.8rem;
         margin-right: 6px;
         display: inline-block;
+    }
+    .tag-salary {
+        background-color: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 6px;
+        display: inline-block;
+        font-weight: 600;
     }
     </style>
 """
@@ -186,6 +197,14 @@ def get_job_statuses() -> dict:
     conn.close()
     return {f"{r[0]}--{r[1]}": r[2] for r in rows}
 
+def estimate_comp(exp_tier: str) -> str:
+    if "Fresher" in exp_tier:
+        return "₹4.0L – ₹6.5L PA (Est.)"
+    elif "1-3" in exp_tier:
+        return "₹7.0L – ₹12.5L PA (Est.)"
+    else:
+        return "₹14.0L – ₹24.0L+ PA (Est.)"
+
 # --- Match & Skill Engine ---
 def score_jobs(candidate_skills: list, jobs: list) -> list:
     candidate_skills_lower = {s.lower().strip() for s in candidate_skills}
@@ -262,27 +281,31 @@ with st.sidebar:
     st.markdown("<hr style='border: 0.5px solid #1f2937;'>", unsafe_allow_html=True)
     profile = get_candidate_profile()
     if profile:
+        skills = profile.get("skills", [])
+        ats_score = min(95, max(50, len(skills) * 12)) if skills else 30
+        st.metric(label="ATS Readiness Index", value=f"{ats_score}/100")
+        st.progress(ats_score / 100)
+        
         st.markdown(f"**Name:** `{profile.get('full_name', 'N/A')}`")
         st.markdown(f"**Email:** `{profile.get('email', 'N/A')}`")
         st.markdown("**Identified Skills:**")
-        skills = profile.get("skills", [])
         if skills:
             tags = "".join([f"<span class='tag-match' style='margin-bottom: 4px;'>{s}</span>" for s in skills])
             st.markdown(tags, unsafe_allow_html=True)
         else:
             st.caption("No skills extracted.")
     else:
-        st.info("Upload a resume to begin scoring.")
+        st.info("Upload a resume to calculate ATS readiness & match scores.")
 
 # --- Master Console Tabs ---
-tab_feed, tab_analytics, tab_tracker, tab_alerts = st.tabs([
+tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Opportunity Feed", 
-    "📊 Skill Gap Analytics", 
+    "📊 Skill Gap Analytics",
+    "🗺️ 7-Day Bridge Roadmap",
     "📋 Application Tracker", 
     "📬 Automation & SMTP"
 ])
 
-# Initialize session state for searched results
 if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
 
@@ -321,7 +344,6 @@ with tab_feed:
 
         st.markdown("---")
         
-        # Quick CSV Download
         df_export = pd.DataFrame(results)[["title", "company", "location", "match_score", "url"]]
         st.download_button(
             label="📥 Export Opportunities as CSV",
@@ -330,6 +352,8 @@ with tab_feed:
             mime="text/csv"
         )
         st.write("")
+
+        salary_estimate = estimate_comp(exp_level)
 
         for idx, job in enumerate(results):
             matched = job.get("matched_skills", [])
@@ -346,8 +370,8 @@ with tab_feed:
                     <h4 style='margin: 0; color: #38bdf8;'>{job.get('title')}</h4>
                     <span style='font-size: 1.15rem; font-weight: 700; color: #34d399;'>{job.get('match_score')}% Match</span>
                 </div>
-                <p style='margin: 4px 0 10px 0; color: #9ca3af; font-size: 0.85rem;'>
-                    <b>{job.get('company')}</b> • {job.get('location')} • Tier: {exp_level}
+                <p style='margin: 6px 0 10px 0; color: #9ca3af; font-size: 0.85rem;'>
+                    <b>{job.get('company')}</b> • {job.get('location')} • <span class='tag-salary'>{salary_estimate}</span>
                 </p>
                 <div style='margin-bottom: 6px;'>
                     <span style='color: #9ca3af; font-size: 0.8rem; font-weight: 600;'>Matched: </span>{matched_html}
@@ -358,11 +382,24 @@ with tab_feed:
             </div>
             """, unsafe_allow_html=True)
             
-            card_c1, card_c2 = st.columns([3, 1])
+            card_c1, card_c2, card_c3, card_c4 = st.columns([1.5, 1.2, 1.2, 1])
             with card_c1:
                 if job.get("url"):
-                    st.markdown(f"[🚀 **Open Application Link**]({job.get('url')})")
+                    st.markdown(f"[🚀 **Apply on Portal**]({job.get('url')})")
             with card_c2:
+                with st.expander("📝 Application Pitch"):
+                    pitch_text = f"Hi Hiring Team at {job.get('company')},\n\nI am applying for the {job.get('title')} role. With my background in {', '.join(matched) if matched else 'core software development'}, I can contribute immediately to your engineering workflows.\n\nBest regards,\n{profile.get('full_name')}"
+                    st.text_area("Cold Application Note", value=pitch_text, height=120, key=f"pitch_{idx}")
+            with card_c3:
+                with st.expander("🎯 Mock Interview Qs"):
+                    q_skills = ", ".join(matched[:2] + missing[:2])
+                    st.markdown(f"""
+                    **Technical Questions for {job.get('title')}:**
+                    1. How do you handle concurrency & performance optimization in your stack?
+                    2. Explain your experience working with `{q_skills or 'Python/SQL'}` in production.
+                    3. How do you design scalable REST APIs and secure endpoints?
+                    """)
+            with card_c4:
                 new_status = st.selectbox(
                     "Track Status", 
                     ["Not Applied", "Applied", "Interviewing", "Saved"],
@@ -391,6 +428,35 @@ with tab_analytics:
             st.success("No skill gaps detected across the fetched job feeds!")
     else:
         st.info("Run a job query in the 'Opportunity Feed' tab to generate analytics.")
+
+with tab_roadmap:
+    st.markdown("#### 🗺️ 7-Day Targeted Upskilling Bridge")
+    st.caption("Structured plan to close top skill gaps identified in your search results.")
+    
+    if results:
+        all_missing = list(set([s for j in results for s in j.get("missing_skills", [])]))[:3]
+        if all_missing:
+            st.markdown(f"**Priority Focus Areas:** `{'` • `'.join(all_missing)}`")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(f"""
+                * **Day 1-2: Core Foundations & Docs**
+                  Master architecture, syntax, and CLI workflows for `{all_missing[0] if len(all_missing)>0 else 'Advanced Python'}`.
+                * **Day 3-4: Hands-on Mini Module**
+                  Implement an API endpoint or Docker container applying `{all_missing[1] if len(all_missing)>1 else 'REST APIs'}`.
+                """)
+            with col_b:
+                st.markdown(f"""
+                * **Day 5-6: Integration & Project Patch**
+                  Add `{all_missing[2] if len(all_missing)>2 else 'Unit Testing & CI/CD'}` to your existing GitHub repo.
+                * **Day 7: Resume Keyword Optimization & Mock Re-test**
+                  Update resume with project metrics and re-score on JobNexus.
+                """)
+        else:
+            st.success("You already possess all primary core skills for these opportunities!")
+    else:
+        st.info("Execute a job query to generate your personalized 7-Day Skill Roadmap.")
 
 with tab_tracker:
     st.markdown("#### Application Status Tracker (SQLite)")
