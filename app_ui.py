@@ -8,381 +8,451 @@ from job_search import search_jobs
 from email_notifier import send_email_alert
 from db_manager import init_db, store_candidate_profile, get_candidate_profile, update_job_status, get_job_statuses
 from semantic_matcher import calculate_semantic_fit
+from ui_styles import CUSTOM_CSS
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-st.set_page_config(page_title="SmartJobFinder | AI Career Intelligence", page_icon="⚡", layout="wide")
+# --- Comprehensive Cross-Domain Job Roles Dataset ---
+MASTER_JOB_ROLES = [
+    "Python Developer", "Python Backend Developer", "Python Full Stack Developer",
+    "Python Django / FastAPI Developer", "Python Data Engineer", "Python Machine Learning Engineer",
+    "Python Automation Tester", "AI Engineer", "Generative AI Specialist", "Prompt Engineer",
+    "NLP Engineer", "Computer Vision Engineer", "MLOps Engineer", "Java Developer",
+    "Java Full Stack Developer", "Spring Boot Microservices Engineer", "Frontend Developer",
+    "React.js Developer", "Angular Developer", "Node.js Developer", "Full Stack Web Developer",
+    "Data Analyst", "Data Scientist", "DevOps Engineer", "Cloud Engineer (AWS/Azure/GCP)",
+    "QA Automation Engineer", "Selenium Tester", "Cybersecurity Analyst", "SQL Developer"
+]
+
+# --- Page Configuration ---
+st.set_page_config(page_title="Smart Job Finder | AI Career Intelligence", page_icon="⚡", layout="wide")
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# ============================================================
-# THEME / CSS  (single source of truth — no duplicate injection)
-# ============================================================
-CUSTOM_CSS = """
+# --- Custom Styling: IT Infrastructure Background & Smooth Hover Steps ---
+st.markdown("""
 <style>
-:root {
-    --accent-1: #38bdf8;
-    --accent-2: #818cf8;
-    --accent-3: #c084fc;
-    --bg-card-top: rgba(30, 41, 59, 0.7);
-    --bg-card-bot: rgba(15, 23, 42, 0.85);
-    --border-soft: #334155;
-    --text-muted: #94a3b8;
-    --good: #10b981;
-    --bad: #ef4444;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.stApp { background: radial-gradient(circle at 20% -10%, #0f172a 0%, #020617 60%); }
+/* IT Infrastructure & Cyber Grid Background */
+.stApp {
+    background-color: #0b0f19;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(129, 140, 248, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(192, 132, 252, 0.1) 0px, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
 
-.gradient-title {
-    background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
+/* Vibrant Gradient Title */
+.brand-title {
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 1.9rem;
+    font-size: 2.2rem;
     font-weight: 800;
     margin: 0;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.5px;
 }
 
-.header-wrap {
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-soft);
-    margin-bottom: 22px;
+/* Unified Upload Hero Card */
+.unified-upload-box {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+    border: 1.5px dashed rgba(56, 189, 248, 0.5);
+    border-radius: 18px;
+    padding: 26px 20px 20px 20px;
+    margin: 10px 0 25px 0;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.05);
 }
-.header-sub { margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.9rem; }
 
+/* Interactive Floating Step Cards (Curser Move / Hover Animation) */
+.step-card {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 14px;
+    padding: 20px;
+    height: 100%;
+    text-align: left;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+.step-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    border-color: #38bdf8;
+    box-shadow: 0 12px 30px rgba(56, 189, 248, 0.25);
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 1));
+}
+
+.step-number {
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    color: #0f172a;
+    font-weight: 800;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+}
+
+/* Job & Feature Cards */
 .gradient-card {
-    background: linear-gradient(145deg, var(--bg-card-top), var(--bg-card-bot));
-    border: 1px solid rgba(56, 189, 248, 0.22);
-    border-radius: 16px;
-    padding: 20px 22px;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-    transition: transform 0.18s ease, border-color 0.18s ease;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9));
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 .gradient-card:hover {
-    border-color: var(--accent-1);
-    transform: translateY(-2px);
+    border-color: #38bdf8;
+    transform: translateY(-3px);
 }
 
-.job-title { color: #e2e8f0; margin: 0; font-size: 1.05rem; font-weight: 700; }
-.job-meta { color: var(--text-muted); font-size: 0.86rem; margin: 4px 0 12px 0; }
-
 .gradient-badge-match {
-    background: linear-gradient(135deg, #059669, var(--good));
+    background: linear-gradient(135deg, #059669, #10b981);
     color: #ffffff;
     font-weight: 800;
-    padding: 4px 13px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.82rem;
-    white-space: nowrap;
+    font-size: 0.85rem;
     box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
 }
 
-.tag-match, .tag-gap {
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    margin: 2px 4px 2px 0;
-    display: inline-block;
-}
-.tag-match {
-    background: linear-gradient(135deg, rgba(6, 78, 59, 0.6), rgba(6, 95, 70, 0.8));
-    border: 1px solid var(--good);
-    color: #34d399;
-}
-.tag-gap {
-    background: linear-gradient(135deg, rgba(127, 29, 29, 0.6), rgba(153, 27, 27, 0.8));
-    border: 1px solid var(--bad);
-    color: #f87171;
-}
+.tag-match { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; padding: 3px 9px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin-right: 4px; display: inline-block; }
+.tag-gap { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; padding: 3px 9px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin-right: 4px; display: inline-block; }
+.role-suggestion-tag { display: inline-block; background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 10px; margin: 4px 4px; border-radius: 6px; font-size: 0.82rem; font-family: monospace; }
 
-.sidebar-footer {
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    line-height: 1.7;
-}
-.sidebar-footer a { color: var(--accent-1); text-decoration: none; font-weight: 600; }
-
+/* Footer */
 .footer-container {
-    margin-top: 48px;
-    padding: 20px;
-    border-top: 1px solid var(--border-soft);
+    margin-top: 55px;
+    padding: 25px;
+    border-top: 1px solid rgba(51, 65, 85, 0.8);
     text-align: center;
-    color: var(--text-muted);
-    font-size: 0.92rem;
+    color: #94a3b8;
+    font-size: 0.95rem;
     line-height: 1.6;
 }
 </style>
-"""
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-DEFAULT_ROLES = "Python, Machine Learning, SQL"
-JOB_STATUS_OPTIONS = ["Not Applied", "Applied", "Interviewing", "Saved"]
+# --- Top Header Section (Smart Job Finder) ---
+st.markdown("""
+<div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid #334155; margin-bottom: 20px;'>
+    <div>
+        <h1 class='brand-title'>⚡ Smart Job Finder</h1>
+        <p style='margin:0; color:#94a3b8; font-size:0.92rem;'>Next-Gen Semantic Vector Matcher & Autonomous Career Intelligence</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-# ============================================================
-# HELPERS
-# ============================================================
-def render_resume_upload():
-    """Centered resume upload block in the main page body."""
+# --- Sidebar Candidate Profile & Ingestion ---
+with st.sidebar:
+    st.markdown("<h3 style='color:#38bdf8;'>👤 Candidate Profile</h3>", unsafe_allow_html=True)
     profile = get_candidate_profile()
+    if profile:
+        skills = profile.get("skills", [])
+        ats = min(95, max(50, len(skills) * 12)) if skills else 30
+        st.metric("Neural ATS Score", f"{ats}/100")
+        st.progress(ats / 100)
+        
+        c_name = profile.get('full_name') or "PRADEEP NAIK DONGAVATH"
+        c_email = profile.get('email') or "dungavathpradeepnaik123@gmail.com"
+        
+        st.markdown(f"**Name:** `{c_name}`")
+        st.markdown(f"**Email:** <br><code style='color:#34d399; font-size:0.8rem;'>{c_email}</code>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:10px;'><b>Extracted Skills:</b></div>", unsafe_allow_html=True)
+        st.markdown("".join([f"<span class='tag-match'>{s}</span>" for s in skills]), unsafe_allow_html=True)
+    else:
+        st.info("No active candidate profile. Ingest your resume on the Home page to initialize.")
 
-    left, mid, right = st.columns([1, 2, 1])
-    with mid:
-        st.markdown("<h3 style='text-align:center; color:#38bdf8;'>📄 Upload Your Resume</h3>", unsafe_allow_html=True)
-        uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"], label_visibility="collapsed")
+    st.markdown("<hr style='border:0.5px solid #334155; margin-top:25px;'>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align: center; color: #94a3b8; font-size: 0.85rem;'>
+        <b>System Architect</b><br>
+        <span style='color: #38bdf8; font-weight: bold;'>Dongavath Pradeep</span><br><br>
+        <a href='https://github.com/DongavathPradeep' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>🔗 GitHub Profile</a><br>
+        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='color:#38bdf8; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
+    </div>
+    """, unsafe_allow_html=True)
 
-        if uploaded_file and st.button("Parse & Generate Embeddings", use_container_width=True):
+# --- Navigation Tabs ---
+tab_home, tab_features, tab_about, tab_tracker, tab_alerts = st.tabs([
+    "🏠 Home", "⭐ Features", "💡 About Project", "📋 Application Tracker", "📬 Email Alerts"
+])
+
+if "jobs_data" not in st.session_state:
+    st.session_state["jobs_data"] = []
+
+# ========================================================
+# 1. TAB: HOME (Unified Upload -> Hover Steps -> Live Matching)
+# ========================================================
+with tab_home:
+    # A. Unified Ingest Box
+    st.markdown("""
+    <div class='unified-upload-box'>
+        <div style='text-align: center;'>
+            <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
+            <p style='color:#94a3b8; font-size:0.9rem; margin:6px 0 16px 0;'>
+                Upload your PDF resume to generate dense vector embeddings and extract skill matrices.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    up_c1, up_c2, up_c3 = st.columns([1, 2.2, 1])
+    with up_c2:
+        uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
+        if uploaded_file and st.button("🚀 Process & Build Embeddings", use_container_width=True):
             temp_path = f"temp_{uploaded_file.name}"
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
             try:
-                with open(temp_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                profile_data = parse_resume(temp_path)
-                if not profile_data or not profile_data.get("skills"):
-                    st.warning("Resume parsed, but no skills were detected — check the file quality.")
-                else:
-                    store_candidate_profile(profile_data)
-                    st.success("Candidate profile & vectors initialized!")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Couldn't parse this resume: {e}")
+                parsed_data = parse_resume(temp_path)
+                store_candidate_profile(parsed_data)
+                st.success("✅ Resume parsed and candidate embeddings initialized successfully!")
+                st.rerun()
             finally:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-        if profile:
-            skills = profile.get("skills", [])
-            ats = min(95, max(50, len(skills) * 12)) if skills else 30
-            c_name = profile.get("full_name") or "Not set"
-            c_email = profile.get("email") or "Not set"
+    st.markdown("</div>", unsafe_allow_html=True)
 
-            m1, m2 = st.columns(2)
-            m1.metric("Candidate", c_name)
-            m2.metric("Neural ATS Alignment", f"{ats}/100")
-            st.progress(ats / 100)
-            st.caption(f"Email: {c_email}")
+    # B. Interactive Steps with Cursor Hover Movement
+    st.markdown("<h4 style='color:#38bdf8; text-align:center; margin: 30px 0 18px 0;'>🧭 How Smart Job Finder Fetches Your Best Matches</h4>", unsafe_allow_html=True)
+    s1, s2, s3, s4 = st.columns(4)
 
-            if skills:
-                st.markdown("<div style='margin-top:8px;'><b>Extracted Skills:</b></div>", unsafe_allow_html=True)
-                st.markdown("".join(f"<span class='tag-match'>{s}</span>" for s in skills), unsafe_allow_html=True)
-        else:
-            st.info("Upload a resume above to build your candidate profile.")
-
-    return profile
-
-
-def render_sidebar():
-    profile = get_candidate_profile()
-
-    with st.sidebar:
-        if profile:
-            st.markdown("<h4 style='color:#38bdf8;'>👤 Candidate Snapshot</h4>", unsafe_allow_html=True)
-            skills = profile.get("skills", [])
-            ats = min(95, max(50, len(skills) * 12)) if skills else 30
-            st.metric("Neural ATS Alignment", f"{ats}/100")
-            st.progress(ats / 100)
-            st.markdown(f"**Name:** `{profile.get('full_name') or 'Not set'}`")
-            st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
-
-        st.markdown(
-            """
-            <div class='sidebar-footer'>
-                <b>System Architect</b><br>
-                <span style='color:#38bdf8; font-weight:bold;'>Dongavath Pradeep</span><br><br>
-                <a href='https://github.com/DongavathPradeep' target='_blank'>🔗 GitHub</a><br>
-                <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank'>💼 LinkedIn</a>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    return profile
-
-
-@st.cache_data(show_spinner=False, ttl=600)
-def fetch_matched_jobs(_profile_key, role, location):
-    """Cached so identical searches don't re-hit the job API / recompute embeddings."""
-    raw = search_jobs(role=role, location=location)
-    return raw
-
-
-def get_jobs(profile, role_query, location_query, force_refresh=False):
-    cache_key = f"{profile.get('email','anon')}|{role_query}|{location_query}"
-    if force_refresh or st.session_state.get("last_query_key") != cache_key:
-        with st.spinner("Analyzing resume skills & computing semantic match across live jobs..."):
-            raw = fetch_matched_jobs(cache_key, role_query, location_query)
-            st.session_state["jobs_data"] = calculate_semantic_fit(profile, raw)
-            st.session_state["last_query_key"] = cache_key
-    return st.session_state.get("jobs_data", [])
-
-
-def render_job_card(job, idx, statuses):
-    matched_html = "".join(f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])) or "None detected"
-    missing_html = "".join(f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])) or "<span style='color:#34d399;'>None</span>"
-
-    st.markdown(
-        f"""
-        <div class='gradient-card'>
-            <div style='display:flex; justify-content:space-between; align-items:center; gap:12px;'>
-                <h4 class='job-title'>{job.get('title')}</h4>
-                <span class='gradient-badge-match'>{job.get('semantic_score')}% Match</span>
-            </div>
-            <p class='job-meta'><b>{job.get('company')}</b> • {job.get('location')}</p>
-            <div style='margin-bottom:6px;'><b>Direct Skill Matches:</b><br>{matched_html}</div>
-            <div><b>Skill Gaps to Cover:</b><br>{missing_html}</div>
+    with s1:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>1</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>1. Extract & Vectorize</h5>
+            <p style='color:#94a3b8; font-size:0.83rem; margin:0;'>Parses PDF text, extracts technical skills, years of experience, and converts into semantic vector embeddings.</p>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        """, unsafe_allow_html=True)
 
-    c1, c2 = st.columns([3, 1])
-    if job.get("url"):
-        c1.markdown(f"[🚀 **Apply via Portal**]({job.get('url')})")
+    with s2:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>2</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>2. Real-Time Fetching</h5>
+            <p style='color:#94a3b8; font-size:0.83rem; margin:0;'>Searches active job openings across major hubs like Hyderabad, Bangalore, and remote domains dynamically.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    job_key = f"{job.get('title')}--{job.get('company')}"
-    current_status = statuses.get(job_key, "Not Applied")
-    default_index = JOB_STATUS_OPTIONS.index(current_status) if current_status in JOB_STATUS_OPTIONS else 0
+    with s3:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>3</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>3. Semantic Cosine Score</h5>
+            <p style='color:#94a3b8; font-size:0.83rem; margin:0;'>Calculates contextual similarity between your resume and Job Descriptions to produce an accurate Match Score.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    new_status = c2.selectbox("Status", JOB_STATUS_OPTIONS, index=default_index, key=f"st_{idx}", label_visibility="collapsed")
-    if new_status != current_status:
-        update_job_status(job.get("title"), job.get("company"), new_status)
-        st.rerun()
+    with s4:
+        st.markdown("""
+        <div class='step-card'>
+            <div class='step-number'>4</div>
+            <h5 style='color:#f8fafc; margin:0 0 6px 0;'>4. Skill Gap & 1-Click Apply</h5>
+            <p style='color:#94a3b8; font-size:0.83rem; margin:0;'>Highlights missing framework requirements, provides direct apply portals, and logs applications to SQLite.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
+    st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
 
-# ============================================================
-# MAIN
-# ============================================================
-if "jobs_data" not in st.session_state:
-    st.session_state["jobs_data"] = []
-
-render_sidebar()
-profile = render_resume_upload()
-st.markdown("<hr style='border:0.5px solid #334155; margin: 8px 0 24px 0;'>", unsafe_allow_html=True)
-
-tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs(
-    ["🎯 Resume-Matched Jobs", "📊 Gap Intelligence", "🗺️ 7-Day Bridge Roadmap", "📋 Application Tracker", "📬 Automation & SMTP"]
-)
-
-# ---------------- TAB 1: MATCHED JOBS ----------------
-with tab_feed:
+    # C. Live Job Matching Section
+    st.markdown("<h4 style='color:#f8fafc;'>🎯 Live Neural Job Matching Feed</h4>", unsafe_allow_html=True)
     candidate_skills = profile.get("skills", []) if profile else []
-    default_role = ", ".join(candidate_skills[:3]) if candidate_skills else DEFAULT_ROLES
+    default_role = ", ".join(candidate_skills[:3]) if candidate_skills else "Python, SQL, Machine Learning"
 
     col1, col2, col3, col4 = st.columns([2.2, 1.1, 1.1, 0.9])
-    role_query = col1.text_input(
-        "Target Roles / Skill Set (Auto-loaded from Resume)",
-        value=default_role,
-        help="Matches jobs directly according to the skills found in your uploaded resume",
-    )
+    role_query = col1.text_input("Target Role / Skills (Loaded from Resume)", value=default_role)
     exp_level = col2.selectbox("Experience", ["Fresher / Entry Level", "1-3 yrs", "4+ yrs", "All"])
     location_query = col3.selectbox("Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Remote"])
-    refresh_clicked = col4.button("🚀 Fetch Matched Jobs", use_container_width=True)
 
-    if not profile:
-        st.warning("⚠️ Please upload your resume in the sidebar first!")
-        results = []
-    else:
-        results = get_jobs(profile, role_query, location_query, force_refresh=refresh_clicked)
+    if role_query.strip():
+        matching_roles = [r for r in MASTER_JOB_ROLES if role_query.strip().lower() in r.lower()]
+        if matching_roles:
+            tags_html = "".join([f"<span class='role-suggestion-tag'>{r}</span>" for r in matching_roles])
+            st.markdown(f"<div style='margin-top:-10px; margin-bottom:12px;'><small style='color:#94a3b8;'><b>Associated Market Roles:</b></small><br>{tags_html}</div>", unsafe_allow_html=True)
 
+    if col4.button("🚀 Fetch Matches", use_container_width=True):
+        if not profile:
+            st.warning("⚠️ Please upload your resume first using the upload box above!")
+        else:
+            with st.spinner(f"Matching live jobs for '{role_query}'..."):
+                raw = search_jobs(role=role_query, location=location_query)
+                st.session_state["jobs_data"] = calculate_semantic_fit(profile, raw)
+
+    results = st.session_state.get("jobs_data", [])
     statuses = get_job_statuses()
 
     if results:
         m1, m2, m3 = st.columns(3)
         m1.metric("Roles Evaluated", len(results))
-        avg_score = round(sum(j.get("semantic_score", 0) for j in results) / len(results), 1)
+        avg_score = round(sum([j.get("semantic_score", 0) for j in results]) / len(results), 1)
         m2.metric("Mean Semantic Match", f"{avg_score}%")
         m3.metric("High Match Roles (≥70%)", len([j for j in results if j.get("semantic_score", 0) >= 70]))
 
         for idx, job in enumerate(results):
-            render_job_card(job, idx, statuses)
-    elif profile:
-        st.info("No jobs yet — click **Fetch Matched Jobs** to run a search.")
+            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])]) or "None detected"
+            missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])]) or "<span style='color:#34d399;'>None</span>"
 
-# ---------------- TAB 2: GAP INTELLIGENCE ----------------
-with tab_analytics:
-    results = st.session_state.get("jobs_data", [])
-    if results:
-        all_missing = [s for j in results for s in j.get("missing_skills", [])]
-        if all_missing:
-            st.caption("Top Missing Market Skills by Frequency")
-            st.bar_chart(pd.Series(all_missing).value_counts().head(8))
-        else:
-            st.success("High semantic alignment across all skills — no consistent gaps found!")
-    else:
-        st.info("Upload your resume and fetch jobs to view gap analytics.")
+            st.markdown(f"""
+            <div class='gradient-card'>
+                <div style='display:flex; justify-content:space-between; align-items:center;'>
+                    <h4 style='color:#38bdf8; margin:0;'>{job.get('title')}</h4>
+                    <span class='gradient-badge-match'>{job.get('semantic_score')}% Match</span>
+                </div>
+                <p style='color:#cbd5e1; font-size:0.88rem; margin:4px 0 10px 0;'><b>{job.get('company')}</b> • {job.get('location')}</p>
+                <div style='margin-bottom:6px;'><b>Matched Skills:</b> {matched_html}</div>
+                <div><b>Skill Gaps:</b> {missing_html}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ---------------- TAB 3: ROADMAP ----------------
-with tab_roadmap:
-    st.markdown("#### 🗺️ 7-Day Targeted Upskilling Bridge")
-    st.write(
-        "Day 1-2: Core Foundations & Frameworks | Day 3-4: Build Vector Pipeline Project | "
-        "Day 5-6: Integration & Deployment | Day 7: Re-index Profile"
-    )
+            c1, c2 = st.columns([3, 1])
+            if job.get("url"):
+                c1.markdown(f"[🚀 **Apply via Portal**]({job.get('url')})")
 
-# ---------------- TAB 4: APPLICATION TRACKER ----------------
+            current_status = statuses.get(f"{job.get('title')}--{job.get('company')}", "Not Applied")
+            options = ["Not Applied", "Applied", "Interviewing", "Saved"]
+            default_index = options.index(current_status) if current_status in options else 0
+
+            new_st = c2.selectbox("Status", options, index=default_index, key=f"st_{idx}")
+            if new_st != current_status:
+                update_job_status(job.get("title"), job.get("company"), new_st)
+                st.rerun()
+
+# ========================================================
+# 2. TAB: FEATURES
+# ========================================================
+with tab_features:
+    st.markdown("<h3 style='color:#38bdf8;'>⭐ Smart Job Finder Features</h3>", unsafe_allow_html=True)
+    f1, f2 = st.columns(2)
+    with f1:
+        st.markdown("""
+        #### 🎯 1. Contextual AI Matching
+        * Bypasses simple keyword searches by evaluating full semantic context between candidate resumes and live industry requirements.
+        
+        #### 🔍 2. Live Skill Gap Detection
+        * Instantly pinpoints missing frameworks (e.g., Docker, FastAPI, Kubernetes) to help candidates prepare before attending interviews.
+        """)
+    with f2:
+        st.markdown("""
+        #### 📋 3. Built-In Application Lifecycle Tracker
+        * Seamlessly tracks statuses (`Saved`, `Applied`, `Interviewing`) across job postings with zero data loss using local SQLite.
+
+        #### 📬 4. Instant Digest Email Alerts
+        * Dispatches curated lists of high-scoring job matches straight to the user's verified email inbox.
+        """)
+
+# ========================================================
+# 3. TAB: ABOUT PROJECT
+# ========================================================
+with tab_about:
+    st.markdown("<h3 style='color:#38bdf8;'>💡 What is Smart Job Finder & What Does It Do?</h3>", unsafe_allow_html=True)
+    st.markdown("""
+    **Smart Job Finder** is an autonomous AI career co-pilot engineered to take the guesswork out of job hunting. Instead of spending hours sending generic applications with low response rates, it deeply analyzes candidate experience and aligns them with ideal market roles.
+    """)
+    
+    ab1, ab2 = st.columns(2)
+    with ab1:
+        st.markdown("""
+        <div class='gradient-card'>
+            <h4 style='color:#38bdf8; margin-top:0;'>🎯 Finds True Semantic Match</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Matches your background contextually with active market requirements, moving beyond rigid word-by-word filtering.
+            </p>
+        </div>
+        <div class='gradient-card'>
+            <h4 style='color:#34d399; margin-top:0;'>⚡ High-Confidence Applications</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Provides an instant Match Score before applying so you can focus on roles where you have the highest probability of receiving interview callbacks.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    with ab2:
+        st.markdown("""
+        <div class='gradient-card'>
+            <h4 style='color:#f59e0b; margin-top:0;'>🔍 Clear Skill Gap Analysis</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Identifies missing tools and technologies for specific openings, empowering targeted upskilling.
+            </p>
+        </div>
+        <div class='gradient-card'>
+            <h4 style='color:#c084fc; margin-top:0;'>📋 Unified Search Organization</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Manages every application status in one place, streamlining the entire job search process.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='background:rgba(30, 41, 59, 0.7); border:1px solid #38bdf8; border-radius:12px; padding:20px; text-align:center;'>
+        <h4 style='color:#f8fafc; margin:0;'>👨‍💻 System Architect & Engineer</h4>
+        <h3 style='color:#38bdf8; margin:6px 0 12px 0;'>Dongavath Pradeep</h3>
+        <p style='color:#cbd5e1; font-size:0.9rem; max-width:600px; margin:0 auto 15px auto;'>
+            Engineered to empower job seekers with transparent AI matching, instant skill gap analysis, and automated job discovery.
+        </p>
+        <a href='https://github.com/DongavathPradeep' target='_blank' style='background:#0f172a; border:1px solid #38bdf8; color:#38bdf8; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; margin-right:10px;'>🔗 GitHub Profile</a>
+        <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='background:#0284c7; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ========================================================
+# 4. TAB: APPLICATION TRACKER
+# ========================================================
 with tab_tracker:
-    try:
-        conn = sqlite3.connect("candidate.db")
-        df_track = pd.read_sql(
-            "SELECT job_title AS 'Role', company AS 'Company', status AS 'Status', updated_at AS 'Updated' "
-            "FROM applications ORDER BY updated_at DESC",
-            conn,
-        )
-        conn.close()
-    except Exception as e:
-        df_track = pd.DataFrame()
-        st.error(f"Couldn't load application history: {e}")
-
+    st.markdown("<h3 style='color:#38bdf8;'>📋 Real-Time Application Tracker</h3>", unsafe_allow_html=True)
+    conn = sqlite3.connect("candidate.db")
+    df_track = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Status', updated_at AS 'Updated' FROM applications", conn)
+    conn.close()
     if not df_track.empty:
         st.dataframe(df_track, use_container_width=True)
     else:
-        st.info("No applications logged yet. Search jobs and mark status as 'Applied' or 'Saved'.")
+        st.info("No applications logged yet. Search jobs on the Home tab and update their status!")
 
-# ---------------- TAB 5: AUTOMATION & SMTP ----------------
+# ========================================================
+# 5. TAB: EMAIL ALERTS
+# ========================================================
 with tab_alerts:
-    st.markdown("### 📬 Email Automation & SMTP Gateway")
+    st.markdown("<h3 style='color:#38bdf8;'>📬 Automated Email Gateway</h3>", unsafe_allow_html=True)
     if profile:
-        target_email = profile.get("email")
-        target_name = profile.get("full_name") or "Candidate"
-
-        if not target_email:
-            st.warning("⚠️ No email found on your parsed resume — add one before sending digests.")
-        else:
-            st.markdown(f"**Target Candidate:** `{target_name}`")
-            st.markdown(f"**Destination Inbox:** <code style='color:#34d399;'>{target_email}</code>", unsafe_allow_html=True)
-            st.markdown(f"**Queued Matched Roles:** `{len(st.session_state.get('jobs_data', []))}`")
-
-            if st.button("🚀 Trigger Email Digest Now", use_container_width=True):
-                current_jobs = st.session_state.get("jobs_data", [])
-                if current_jobs:
-                    with st.spinner("Dispatching email digest via SMTP..."):
-                        send_error = None
-                        try:
-                            success = send_email_alert(target_email, target_name, current_jobs)
-                        except Exception as e:
-                            success = False
-                            send_error = str(e)
-
-                        if success:
-                            st.success(f"✅ High-match job digest sent to {target_email}!")
-                        elif send_error:
-                            st.error(f"SMTP error: {send_error}")
-                        else:
-                            st.error("❌ Failed to send email. Check your SMTP App Password configuration.")
-                else:
-                    st.warning("⚠️ No jobs in queue! Fetch jobs in the first tab first.")
+        target_email = profile.get("email") or "dungavathpradeepnaik123@gmail.com"
+        target_name = profile.get("full_name") or "Pradeep Naik"
+        
+        st.markdown(f"**Target Candidate:** `{target_name}`")
+        st.markdown(f"**Destination Inbox:** `<span style='color:#34d399;'>{target_email}</span>`", unsafe_allow_html=True)
+        st.markdown(f"**Queued Matched Roles:** `{len(st.session_state.get('jobs_data', []))}`")
+        
+        if st.button("🚀 Trigger Email Digest Now", use_container_width=True):
+            current_jobs = st.session_state.get("jobs_data", [])
+            if current_jobs:
+                with st.spinner("Dispatching email digest via SMTP..."):
+                    success = send_email_alert(target_email, target_name, current_jobs)
+                    if success:
+                        st.success(f"✅ High-match job digest successfully sent to {target_email}!")
+                    else:
+                        st.error("❌ Failed to send email. Check your SMTP configuration.")
+            else:
+                st.warning("⚠️ No jobs in queue! Fetch jobs in the Home tab first.")
     else:
-        st.warning("⚠️ Please upload your resume in the sidebar to configure the candidate profile.")
+        st.warning("⚠️ Please upload your resume in the Home tab to initialize candidate profile.")
 
-# ---------------- FOOTER ----------------
-st.markdown(
-    """
-    <div class='footer-container'>
-        ⚡ <b>SmartJobFinder AI Engine — Architected &amp; Engineered by</b><br>
-        <b style='color:#38bdf8; font-size:1.05rem;'>Dongavath Pradeep</b>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# --- Bottom Footer ---
+st.markdown("""
+<div class='footer-container'>
+    ⚡ <b>Smart Job Finder Architected & Engineered by</b><br>
+    <b style='color: #38bdf8; font-size: 1.05rem;'>Dongavath Pradeep</b>
+</div>
+""", unsafe_allow_html=True)
