@@ -27,7 +27,7 @@ st.set_page_config(page_title="Smart Job Finder | AI Career Intelligence", page_
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# --- Custom Styling: Exact Hero Card Styling ---
+# --- Custom Styling: Centered Upload Box & UI ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -59,12 +59,12 @@ html, body, [class*="css"] {
     letter-spacing: -0.5px;
 }
 
-/* Exact Large Hero Upload Box with Glowing Dotted Border */
+/* Large Hero Upload Container */
 .hero-ingest-container {
     background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(11, 15, 25, 0.95));
     border: 1.5px dashed #0284c7;
     border-radius: 20px;
-    padding: 35px 25px 25px 25px;
+    padding: 30px 25px 25px 25px;
     margin: 15px 0 30px 0;
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(2, 132, 199, 0.15);
     text-align: center;
@@ -81,16 +81,29 @@ html, body, [class*="css"] {
 }
 .hero-ingest-sub {
     color: #94a3b8;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     margin: 0 0 20px 0;
 }
 
-/* Streamlit Native Uploader Custom Clean Dark Styling */
+/* Center-Align Streamlit Native File Uploader & Eliminate Extra Padding */
 [data-testid="stFileUploader"] {
-    background: rgba(30, 41, 59, 0.4);
-    border-radius: 12px;
-    padding: 10px;
-    border: 1px solid rgba(56, 189, 248, 0.2);
+    width: 100% !important;
+    max-width: 520px !important;
+    margin: 0 auto !important;
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-radius: 12px !important;
+    padding: 10px 18px !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+[data-testid="stFileUploader"] section {
+    padding: 0 !important;
+}
+[data-testid="stFileUploaderDropzone"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 8px 12px !important;
 }
 
 /* Interactive Floating Step Cards */
@@ -127,7 +140,7 @@ html, body, [class*="css"] {
     box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
 }
 
-/* Gradient Card */
+/* Gradient Cards */
 .gradient-card {
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9));
     border: 1px solid rgba(56, 189, 248, 0.25);
@@ -216,10 +229,10 @@ if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
 
 # ========================================================
-# 1. TAB: HOME (Exact Unified Hero Upload Box)
+# 1. TAB: HOME (Perfect Centered Upload Box)
 # ========================================================
 with tab_home:
-    # Exact Large Dotted-Border Hero Card Container
+    # Large Dotted Hero Card Container
     st.markdown("""
     <div class='hero-ingest-container'>
         <div class='hero-ingest-title'>
@@ -230,21 +243,23 @@ with tab_home:
         </p>
     """, unsafe_allow_html=True)
 
-    up_c1, up_c2, up_c3 = st.columns([1, 2.8, 1])
+    up_c1, up_c2, up_c3 = st.columns([1, 1.8, 1])
     with up_c2:
         uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
-        if uploaded_file and st.button("🚀 Process & Build Embeddings", use_container_width=True):
-            temp_path = f"temp_{uploaded_file.name}"
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            try:
-                parsed_data = parse_resume(temp_path)
-                store_candidate_profile(parsed_data)
-                st.success("✅ Resume parsed and candidate embeddings initialized successfully!")
-                st.rerun()
-            finally:
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
+        if uploaded_file:
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 Process & Build Embeddings", use_container_width=True):
+                temp_path = f"temp_{uploaded_file.name}"
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                try:
+                    parsed_data = parse_resume(temp_path)
+                    store_candidate_profile(parsed_data)
+                    st.success("✅ Resume parsed and candidate embeddings initialized successfully!")
+                    st.rerun()
+                finally:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -448,27 +463,26 @@ with tab_tracker:
 # ========================================================
 with tab_alerts:
     st.markdown("<h3 style='color:#38bdf8;'>📬 Automated Email Gateway</h3>", unsafe_allow_html=True)
-    if profile:
-        target_email = profile.get("email") or "dungavathpradeepnaik123@gmail.com"
-        target_name = profile.get("full_name") or "Pradeep Naik"
-        
-        st.markdown(f"**Target Candidate:** `{target_name}`")
-        st.markdown(f"**Destination Inbox:** `<span style='color:#34d399;'>{target_email}</span>`", unsafe_allow_html=True)
-        st.markdown(f"**Queued Matched Roles:** `{len(st.session_state.get('jobs_data', []))}`")
-        
-        if st.button("🚀 Trigger Email Digest Now", use_container_width=True):
-            current_jobs = st.session_state.get("jobs_data", [])
-            if current_jobs:
-                with st.spinner("Dispatching email digest via SMTP..."):
-                    success = send_email_alert(target_email, target_name, current_jobs)
-                    if success:
-                        st.success(f"✅ High-match job digest successfully sent to {target_email}!")
-                    else:
-                        st.error("❌ Failed to send email. Check your SMTP configuration.")
-            else:
-                st.warning("⚠️ No jobs in queue! Fetch jobs in the Home tab first.")
-    else:
-        st.warning("⚠️ Please upload your resume in the Home tab to initialize candidate profile.")
+    
+    target_email = profile.get("email") if profile and profile.get("email") else "dungavathpradeepnaik123@gmail.com"
+    target_name = profile.get("full_name") if profile and profile.get("full_name") else "Pradeep Naik"
+    
+    st.markdown(f"**Target Candidate:** `{target_name}`")
+    st.markdown(f"**Destination Inbox:** `{target_email}`")
+    
+    current_jobs = st.session_state.get("jobs_data", [])
+    st.markdown(f"**Queued Matched Roles:** `{len(current_jobs)}`")
+    
+    if st.button("🚀 Trigger Email Digest Now", use_container_width=True):
+        if not current_jobs:
+            st.warning("⚠️ No jobs in queue! Please fetch jobs in the Home tab first.")
+        else:
+            with st.spinner("Connecting to Gmail SMTP and sending email digest..."):
+                success, response_msg = send_email_alert(target_email, target_name, current_jobs)
+                if success:
+                    st.success(f"✅ High-match job digest successfully sent to {target_email}!")
+                else:
+                    st.error(f"❌ Failed to send email. Error: {response_msg}")
 
 # --- Bottom Footer ---
 st.markdown("""
