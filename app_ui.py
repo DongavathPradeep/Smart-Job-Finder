@@ -14,7 +14,6 @@ st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_i
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# Top Navigation Bar
 st.markdown("""
 <div style='display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid #334155;'>
     <div>
@@ -28,7 +27,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
 with st.sidebar:
     st.markdown("<h3 style='color:#38bdf8;'>📄 Candidate Ingestion</h3>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
@@ -51,7 +49,6 @@ with st.sidebar:
         st.markdown(f"**Candidate:** `{profile.get('full_name')}`\n\n**Contact:** `{profile.get('email')}`")
         st.markdown("".join([f"<span class='tag-match'>{s}</span>" for s in skills]), unsafe_allow_html=True)
 
-# Tabs
 tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Neural Job Feed", "📊 Gap Intelligence", "🗺️ 7-Day Bridge Roadmap", "📋 Application Tracker", "📬 Automation & SMTP"
 ])
