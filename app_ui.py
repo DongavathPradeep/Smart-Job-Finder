@@ -32,12 +32,14 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
     if uploaded_file and st.button("Parse & Generate Embeddings", use_container_width=True):
         temp_path = f"temp_{uploaded_file.name}"
-        with open(temp_path, "wb") as f: f.write(uploaded_file.getbuffer())
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
         try:
             store_candidate_profile(parse_resume(temp_path))
             st.success("Candidate vectors stored & initialized.")
         finally:
-            if os.path.exists(temp_path): os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
             
     st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
     profile = get_candidate_profile()
@@ -53,8 +55,10 @@ tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Neural Job Feed", "📊 Gap Intelligence", "🗺️ 7-Day Bridge Roadmap", "📋 Application Tracker", "📬 Automation & SMTP"
 ])
 
-if "jobs_data" not in st.session_state: st.session_state["jobs_data"] = []
-if "role_input" not in st.session_state: st.session_state["role_input"] = "Python Developer"
+if "jobs_data" not in st.session_state:
+    st.session_state["jobs_data"] = []
+if "role_input" not in st.session_state:
+    st.session_state["role_input"] = "Python Developer"
 
 with tab_feed:
     col1, col2, col3, col4 = st.columns([2, 1.2, 1.2, 0.8])
@@ -78,8 +82,8 @@ with tab_feed:
         m3.metric("High Semantic Fit (≥70%)", len([j for j in results if j.get("semantic_score", 0) >= 70]))
         
         for idx, job in enumerate(results):
-            matched = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])])
-            missing = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])])
+            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in job.get("matched_skills", [])]) or "None detected"
+            missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in job.get("missing_skills", [])]) or "<span style='color:#34d399;'>None</span>"
             
             st.markdown(f"""
             <div class='job-card'>
@@ -88,17 +92,21 @@ with tab_feed:
                     <span style='color:#34d399; font-weight:800;'>{job.get('semantic_score')}% Semantic Match</span>
                 </div>
                 <p style='color:#cbd5e1; font-size:0.88rem;'><b>{job.get('company')}</b> • {job.get('location')}</p>
-                <div style='margin-bottom:6px;'><b>Direct Matches:</b> {matched or 'None detected'}</div>
-                <div><b>Skill Gaps:</b> {missing or '<span style=\"color:#34d399;\">None</span>'}</div>
+                <div style='margin-bottom:6px;'><b>Direct Matches:</b> {matched_html}</div>
+                <div><b>Skill Gaps:</b> {missing_html}</div>
             </div>
             """, unsafe_allow_html=True)
             
             c1, c2 = st.columns([3, 1])
-            if job.get("url"): c1.markdown(f"[🚀 **Apply via Portal**]({job.get('url')})")
-            new_st = c2.selectbox("Status", ["Not Applied", "Applied", "Interviewing", "Saved"], 
-                                  index=["Not Applied", "Applied", "Interviewing", "Saved"].index(statuses.get(f"{job.get('title')}--{job.get('company')}", "Not Applied")), 
-                                  key=f"st_{idx}")
-            if new_st != statuses.get(f"{job.get('title')}--{job.get('company')}", "Not Applied"):
+            if job.get("url"):
+                c1.markdown(f"[🚀 **Apply via Portal**]({job.get('url')})")
+            
+            current_status = statuses.get(f"{job.get('title')}--{job.get('company')}", "Not Applied")
+            options = ["Not Applied", "Applied", "Interviewing", "Saved"]
+            default_index = options.index(current_status) if current_status in options else 0
+            
+            new_st = c2.selectbox("Status", options, index=default_index, key=f"st_{idx}")
+            if new_st != current_status:
                 update_job_status(job.get("title"), job.get("company"), new_st)
                 st.rerun()
 
