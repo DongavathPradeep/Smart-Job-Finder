@@ -15,33 +15,57 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Clean Engineering UI Styling with IT Infrastructure Overlay ---
+# --- High-Contrast UI Styling with Modern IT Campus Infrastructure ---
 custom_ui_style = """
     <style>
     header[data-testid="stHeader"] { background: transparent !important; }
     [data-testid="stStatusWidget"], div[class*="viewerBadge"] { display: none !important; }
 
-    /* IT Infrastructure Server/Data Center Background with Dark Overlay */
+    /* Modern IT Enterprise Campus & Infrastructure Background */
     .stApp {
-        background: linear-gradient(rgba(11, 15, 25, 0.90), rgba(15, 23, 42, 0.94)), 
-                    url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed !important;
+        background: linear-gradient(rgba(10, 15, 30, 0.88), rgba(15, 23, 42, 0.93)), 
+                    url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed !important;
         background-size: cover !important;
-        color: #c9d1d9 !important;
+        color: #f1f5f9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Make All Streamlit Tabs Crystal Clear & Highly Visible */
+    button[data-baseweb="tab"] {
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px 8px 0 0 !important;
+        padding: 8px 16px !important;
+        margin-right: 6px !important;
+    }
+    button[data-baseweb="tab"] div p, button[data-baseweb="tab"] div span {
+        color: #94a3b8 !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background-color: #1e293b !important;
+        border-bottom: 3px solid #38bdf8 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] div p, 
+    button[data-baseweb="tab"][aria-selected="true"] div span {
+        color: #38bdf8 !important;
+        font-weight: 800 !important;
     }
 
     /* Input & Select Box Styling */
     .stTextInput input, .stSelectbox > div > div {
-        background-color: #111827 !important;
-        color: #f3f4f6 !important;
-        border: 1px solid #374151 !important;
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
         border-radius: 6px !important;
+        font-weight: 600 !important;
     }
 
     label, .stTextInput label, .stSelectbox label, .stSlider label {
         color: #38bdf8 !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        font-size: 0.92rem !important;
     }
 
     /* Primary Action Buttons */
@@ -50,29 +74,29 @@ custom_ui_style = """
         color: #ffffff !important;
         border: 1px solid #3b82f6 !important;
         border-radius: 6px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
     }
 
     /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: rgba(3, 7, 18, 0.96) !important;
-        border-right: 1px solid #1f2937 !important;
-        backdrop-filter: blur(8px) !important;
+        background-color: rgba(11, 17, 32, 0.98) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(10px) !important;
     }
 
     /* Metric Cards */
     [data-testid="stMetric"] {
-        background: rgba(17, 24, 39, 0.85) !important;
-        border: 1px solid #1f2937 !important;
+        background: rgba(30, 41, 59, 0.85) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
         border-radius: 8px !important;
         padding: 12px !important;
-        backdrop-filter: blur(6px) !important;
     }
 
     /* Job Glassmorphism Cards */
     .job-card {
-        background-color: rgba(17, 24, 39, 0.90);
-        border: 1px solid #1f2937;
+        background-color: rgba(30, 41, 59, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 8px;
         padding: 18px;
         margin-bottom: 12px;
@@ -81,35 +105,37 @@ custom_ui_style = """
 
     /* Badges */
     .tag-match {
-        background-color: rgba(16, 185, 129, 0.15);
+        background-color: #064e3b;
         color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.4);
-        padding: 2px 8px;
+        border: 1px solid #059669;
+        padding: 3px 8px;
         border-radius: 4px;
-        font-size: 0.8rem;
-        margin-right: 6px;
-        display: inline-block;
-    }
-    .tag-gap {
-        background-color: rgba(239, 68, 68, 0.15);
-        color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin-right: 6px;
-        display: inline-block;
-    }
-    .tag-salary {
-        background-color: rgba(245, 158, 11, 0.15);
-        color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         margin-right: 6px;
         display: inline-block;
         font-weight: 600;
+    }
+    .tag-gap {
+        background-color: #7f1d1d;
+        color: #f87171;
+        border: 1px solid #dc2626;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        margin-right: 6px;
+        display: inline-block;
+        font-weight: 600;
+    }
+    .tag-salary {
+        background-color: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid #d97706;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        margin-right: 6px;
+        display: inline-block;
+        font-weight: 700;
     }
     </style>
 """
@@ -245,14 +271,14 @@ init_db()
 
 # --- Top Console Navigation ---
 st.markdown("""
-<div style='display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #1f2937;'>
+<div style='display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #334155;'>
     <div>
-        <h2 style='margin: 0; color: #f3f4f6; font-size: 1.5rem; font-weight: 700;'>⚡ JobNexus Console</h2>
-        <p style='margin: 2px 0 0 0; color: #9ca3af; font-size: 0.85rem;'>Automated Skill Gap Analysis & Opportunity Orchestrator</p>
+        <h2 style='margin: 0; color: #f8fafc; font-size: 1.6rem; font-weight: 800;'>⚡ JobNexus Console</h2>
+        <p style='margin: 2px 0 0 0; color: #94a3b8; font-size: 0.9rem;'>Automated Skill Gap Analysis & Opportunity Orchestrator</p>
     </div>
     <div style='display: flex; gap: 8px;'>
-        <span style='background: #111827; border: 1px solid #374151; color: #38bdf8; font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px;'>INFRASTRUCTURE ACTIVE</span>
-        <span style='background: #111827; border: 1px solid #374151; color: #34d399; font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px;'>SQLITE PROD</span>
+        <span style='background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; font-family: monospace; font-size: 0.8rem; padding: 4px 12px; border-radius: 4px; font-weight: 600;'>INFRASTRUCTURE ACTIVE</span>
+        <span style='background: #1e293b; border: 1px solid #34d399; color: #34d399; font-family: monospace; font-size: 0.8rem; padding: 4px 12px; border-radius: 4px; font-weight: 600;'>SQLITE PROD</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -261,7 +287,7 @@ st.write("")
 
 # --- Sidebar: Profile & Extraction Engine ---
 with st.sidebar:
-    st.markdown("<h4 style='color: #f3f4f6; margin-bottom: 8px;'>Candidate Profile</h4>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #38bdf8; margin-bottom: 8px; font-weight: 700;'>📄 Candidate Profile</h3>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
     
     if uploaded_file is not None:
@@ -278,7 +304,7 @@ with st.sidebar:
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
                         
-    st.markdown("<hr style='border: 0.5px solid #1f2937;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 0.5px solid #334155;'>", unsafe_allow_html=True)
     profile = get_candidate_profile()
     if profile:
         skills = profile.get("skills", [])
@@ -297,7 +323,7 @@ with st.sidebar:
     else:
         st.info("Upload a resume to calculate ATS readiness & match scores.")
 
-# --- Master Console Tabs ---
+# --- Master Console Tabs with Strong Visibility ---
 tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
     "🎯 Opportunity Feed", 
     "📊 Skill Gap Analytics",
@@ -358,7 +384,7 @@ with tab_feed:
         for idx, job in enumerate(results):
             matched = job.get("matched_skills", [])
             missing = job.get("missing_skills", [])
-            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in matched]) if matched else "<span style='color: #6b7280;'>None detected</span>"
+            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in matched]) if matched else "<span style='color: #94a3b8;'>None detected</span>"
             missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in missing]) if missing else "<span style='color: #34d399;'>100% Core Alignment</span>"
             
             job_key = f"{job.get('title')}--{job.get('company')}"
@@ -368,16 +394,16 @@ with tab_feed:
             <div class='job-card'>
                 <div style='display: flex; justify-content: space-between; align-items: center;'>
                     <h4 style='margin: 0; color: #38bdf8;'>{job.get('title')}</h4>
-                    <span style='font-size: 1.15rem; font-weight: 700; color: #34d399;'>{job.get('match_score')}% Match</span>
+                    <span style='font-size: 1.15rem; font-weight: 800; color: #34d399;'>{job.get('match_score')}% Match</span>
                 </div>
-                <p style='margin: 6px 0 10px 0; color: #9ca3af; font-size: 0.85rem;'>
+                <p style='margin: 6px 0 10px 0; color: #cbd5e1; font-size: 0.88rem;'>
                     <b>{job.get('company')}</b> • {job.get('location')} • <span class='tag-salary'>{salary_estimate}</span>
                 </p>
                 <div style='margin-bottom: 6px;'>
-                    <span style='color: #9ca3af; font-size: 0.8rem; font-weight: 600;'>Matched: </span>{matched_html}
+                    <span style='color: #94a3b8; font-size: 0.82rem; font-weight: 600;'>Matched: </span>{matched_html}
                 </div>
                 <div style='margin-bottom: 12px;'>
-                    <span style='color: #9ca3af; font-size: 0.8rem; font-weight: 600;'>Skill Gaps: </span>{missing_html}
+                    <span style='color: #94a3b8; font-size: 0.82rem; font-weight: 600;'>Skill Gaps: </span>{missing_html}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -411,7 +437,7 @@ with tab_feed:
                     st.rerun()
 
 with tab_analytics:
-    st.markdown("#### Market Demand vs Profile Gap Intelligence")
+    st.markdown("<h3 style='color:#38bdf8; font-weight:700;'>📊 Market Demand vs Profile Gap Intelligence</h3>", unsafe_allow_html=True)
     if results:
         all_missing = []
         for j in results:
@@ -430,7 +456,7 @@ with tab_analytics:
         st.info("Run a job query in the 'Opportunity Feed' tab to generate analytics.")
 
 with tab_roadmap:
-    st.markdown("#### 🗺️ 7-Day Targeted Upskilling Bridge")
+    st.markdown("<h3 style='color:#38bdf8; font-weight:700;'>🗺️ 7-Day Targeted Upskilling Bridge</h3>", unsafe_allow_html=True)
     st.caption("Structured plan to close top skill gaps identified in your search results.")
     
     if results:
@@ -459,7 +485,7 @@ with tab_roadmap:
         st.info("Execute a job query to generate your personalized 7-Day Skill Roadmap.")
 
 with tab_tracker:
-    st.markdown("#### Application Status Tracker (SQLite)")
+    st.markdown("<h3 style='color:#38bdf8; font-weight:700;'>📋 Application Status Tracker (SQLite)</h3>", unsafe_allow_html=True)
     conn = sqlite3.connect(DB_PATH)
     app_df = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Current Status', updated_at AS 'Last Updated' FROM applications ORDER BY updated_at DESC", conn)
     conn.close()
@@ -470,12 +496,13 @@ with tab_tracker:
         st.info("No applications tracked yet. Update statuses in the 'Opportunity Feed' to track them here.")
 
 with tab_alerts:
-    st.markdown("#### Automated SMTP Dispatch")
+    st.markdown("<h3 style='color:#38bdf8; font-weight:700;'>📬 Automated SMTP Dispatch</h3>", unsafe_allow_html=True)
     st.caption("Send high-priority matches directly to your inbox.")
     
     threshold = st.slider("Score Threshold for Alerts (%)", 50, 100, 75)
     
     if st.button("Trigger Email Digest", use_container_width=True):
+        profile = get_candidate_profile()
         if not profile:
             st.error("Please load a candidate profile first.")
         else:
@@ -500,8 +527,8 @@ with tab_alerts:
 
 # --- Architecture Footer ---
 st.markdown("""
-<div style='margin-top: 50px; padding: 16px 0; border-top: 1px solid #1f2937; display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280;'>
+<div style='margin-top: 50px; padding: 16px 0; border-top: 1px solid #334155; display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8;'>
     <div>Stack: Python 3.11 • Streamlit • SQLite3 • Pandas</div>
-    <div>Engineered by <span style='color: #38bdf8; font-weight: 600;'>D. Pradeep Naik</span></div>
+    <div>Engineered by <span style='color: #38bdf8; font-weight: 700;'>D. Pradeep Naik</span></div>
 </div>
 """, unsafe_allow_html=True)
