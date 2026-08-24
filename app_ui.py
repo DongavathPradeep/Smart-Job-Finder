@@ -1,6 +1,8 @@
 import os
 import json
 import sqlite3
+import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from resume_parser import parse_resume
@@ -9,85 +11,101 @@ from email_notifier import send_email_alert
 
 # --- Streamlit Layout Configuration ---
 st.set_page_config(
-    page_title="JobNexus | Developer Career Intelligence",
-    page_icon="💼",
+    page_title="JobNexus | Enterprise Tech Career Intelligence",
+    page_icon="⚡",
     layout="wide"
 )
 
-# --- Professional Developer Theme (No AI-like Neon Glow) ---
+# --- Clean Engineering UI Styling with IT Infrastructure Overlay ---
 custom_ui_style = """
     <style>
     header[data-testid="stHeader"] { background: transparent !important; }
     [data-testid="stStatusWidget"], div[class*="viewerBadge"] { display: none !important; }
 
-    /* Clean Dark Developer Theme */
+    /* IT Infrastructure Server/Data Center Background with Dark Overlay */
     .stApp {
-        background-color: #0d1117 !important;
+        background: linear-gradient(rgba(11, 15, 25, 0.90), rgba(15, 23, 42, 0.94)), 
+                    url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed !important;
+        background-size: cover !important;
         color: #c9d1d9 !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* Input Fields */
+    /* Input & Select Box Styling */
     .stTextInput input, .stSelectbox > div > div {
-        background-color: #161b22 !important;
-        color: #f0f6fc !important;
-        border: 1px solid #30363d !important;
+        background-color: #111827 !important;
+        color: #f3f4f6 !important;
+        border: 1px solid #374151 !important;
         border-radius: 6px !important;
     }
 
-    /* Action Buttons (Solid GitHub-Style Theme) */
+    label, .stTextInput label, .stSelectbox label, .stSlider label {
+        color: #38bdf8 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Primary Action Buttons */
     .stButton > button {
-        background-color: #238636 !important;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(240, 246, 252, 0.1) !important;
+        border: 1px solid #3b82f6 !important;
         border-radius: 6px !important;
         font-weight: 600 !important;
-    }
-    .stButton > button:hover {
-        background-color: #2ea043 !important;
     }
 
     /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #010409 !important;
-        border-right: 1px solid #21262d !important;
+        background-color: rgba(3, 7, 18, 0.95) !important;
+        border-right: 1px solid #1f2937 !important;
+        backdrop-filter: blur(8px) !important;
     }
 
-    /* Cards */
+    /* Metric Cards */
+    [data-testid="stMetric"] {
+        background: rgba(17, 24, 39, 0.85) !important;
+        border: 1px solid #1f2937 !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        backdrop-filter: blur(6px) !important;
+    }
+
+    /* Job Glassmorphism Cards */
     .job-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        padding: 16px;
+        background-color: rgba(17, 24, 39, 0.88);
+        border: 1px solid #1f2937;
+        border-radius: 8px;
+        padding: 18px;
         margin-bottom: 12px;
+        backdrop-filter: blur(8px);
     }
 
-    /* Tags */
+    /* Badges */
     .tag-match {
-        background-color: rgba(46, 160, 67, 0.15);
-        color: #3fb950;
-        border: 1px solid rgba(46, 160, 67, 0.4);
+        background-color: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.4);
         padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.78rem;
-        margin-right: 5px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 6px;
         display: inline-block;
     }
     .tag-gap {
-        background-color: rgba(248, 81, 73, 0.15);
-        color: #f85149;
-        border: 1px solid rgba(248, 81, 73, 0.4);
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.4);
         padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.78rem;
-        margin-right: 5px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 6px;
         display: inline-block;
     }
     </style>
 """
 st.markdown(custom_ui_style, unsafe_allow_html=True)
 
-# --- Database Layer ---
+# --- SQLite Database Layer ---
 DB_PATH = "candidate.db"
 
 def init_db():
@@ -101,6 +119,15 @@ def init_db():
             phone TEXT,
             skills TEXT,
             summary TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_title TEXT,
+            company TEXT,
+            status TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
@@ -140,7 +167,27 @@ def get_candidate_profile() -> dict:
         "summary": row[4]
     }
 
-# --- Scoring Engine ---
+def update_job_status(job_title: str, company: str, status: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM applications WHERE job_title = ? AND company = ?", (job_title, company))
+    exists = cursor.fetchone()
+    if exists:
+        cursor.execute("UPDATE applications SET status = ? WHERE id = ?", (status, exists[0]))
+    else:
+        cursor.execute("INSERT INTO applications (job_title, company, status) VALUES (?, ?, ?)", (job_title, company, status))
+    conn.commit()
+    conn.close()
+
+def get_job_statuses() -> dict:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT job_title, company, status FROM applications")
+    rows = cursor.fetchall()
+    conn.close()
+    return {f"{r[0]}--{r[1]}": r[2] for r in rows}
+
+# --- Match & Skill Engine ---
 def score_jobs(candidate_skills: list, jobs: list) -> list:
     candidate_skills_lower = {s.lower().strip() for s in candidate_skills}
     tech_keywords = [
@@ -178,124 +225,211 @@ def score_jobs(candidate_skills: list, jobs: list) -> list:
 
 init_db()
 
-# --- Top Navigation Header (Developer Style) ---
+# --- Top Console Navigation ---
 st.markdown("""
-<div style='display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #21262d;'>
+<div style='display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #1f2937;'>
     <div>
-        <h2 style='margin: 0; color: #f0f6fc; font-weight: 600; font-size: 1.6rem;'>JobNexus Engine</h2>
-        <p style='margin: 0; color: #8b949e; font-size: 0.85rem;'>Automated Skill Gap Scorer & Tech Role Aggregator</p>
+        <h2 style='margin: 0; color: #f3f4f6; font-size: 1.5rem; font-weight: 700;'>⚡ JobNexus Console</h2>
+        <p style='margin: 2px 0 0 0; color: #9ca3af; font-size: 0.85rem;'>Automated Skill Gap Analysis & Opportunity Orchestrator</p>
     </div>
-    <div style='text-align: right;'>
-        <span style='background-color: #21262d; color: #58a6ff; font-family: monospace; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;'>v2.4.0-stable</span>
+    <div style='display: flex; gap: 8px;'>
+        <span style='background: #111827; border: 1px solid #374151; color: #38bdf8; font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px;'>INFRASTRUCTURE ACTIVE</span>
+        <span style='background: #111827; border: 1px solid #374151; color: #34d399; font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px;'>SQLITE PROD</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.write("")
 
-# --- Sidebar: Profile & DB Controls ---
+# --- Sidebar: Profile & Extraction Engine ---
 with st.sidebar:
-    st.markdown("<h4 style='color: #f0f6fc;'>Candidate Profile</h4>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+    st.markdown("<h4 style='color: #f3f4f6; margin-bottom: 8px;'>Candidate Profile</h4>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Upload PDF Resume", type=["pdf"])
     
     if uploaded_file is not None:
-        if st.button("Parse & Ingest Resume", use_container_width=True):
-            with st.spinner("Extracting profile text & skills..."):
+        if st.button("Parse & Ingest Profile", use_container_width=True):
+            with st.spinner("Extracting candidate metadata..."):
                 temp_path = f"temp_{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 try:
                     parsed_data = parse_resume(temp_path)
                     store_candidate_profile(parsed_data)
-                    st.success("Candidate record stored in SQLite.")
+                    st.success("Resume ingested into SQLite schema.")
                 finally:
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
-    
-    st.markdown("<hr style='border: 0.5px solid #21262d;'>", unsafe_allow_html=True)
+                        
+    st.markdown("<hr style='border: 0.5px solid #1f2937;'>", unsafe_allow_html=True)
     profile = get_candidate_profile()
     if profile:
         st.markdown(f"**Name:** `{profile.get('full_name', 'N/A')}`")
         st.markdown(f"**Email:** `{profile.get('email', 'N/A')}`")
-        st.markdown("**Parsed Skills:**")
+        st.markdown("**Identified Skills:**")
         skills = profile.get("skills", [])
         if skills:
-            tags = "".join([f"<span class='tag-match'>{s}</span>" for s in skills])
+            tags = "".join([f"<span class='tag-match' style='margin-bottom: 4px;'>{s}</span>" for s in skills])
             st.markdown(tags, unsafe_allow_html=True)
         else:
-            st.caption("No skills identified.")
+            st.caption("No skills extracted.")
     else:
-        st.caption("No active candidate profile loaded.")
+        st.info("Upload a resume to begin scoring.")
 
-# --- Main Tabs Layout ---
-tab1, tab2 = st.tabs(["Opportunity Feed", "Alerts & Automation"])
+# --- Master Console Tabs ---
+tab_feed, tab_analytics, tab_tracker, tab_alerts = st.tabs([
+    "🎯 Opportunity Feed", 
+    "📊 Skill Gap Analytics", 
+    "📋 Application Tracker", 
+    "📬 Automation & SMTP"
+])
 
-with tab1:
-    c1, c2, c3, c4 = st.columns([2, 1.2, 1.2, 0.8])
-    with c1:
-        role_query = st.text_input("Role Title", value="Python Developer")
-    with c2:
-        exp_level = st.selectbox("Experience", ["Fresher / Entry Level", "1-3 Years", "4+ Years", "All"])
-    with c3:
-        location_query = st.selectbox("Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Remote"])
-    with c4:
+# Initialize session state for searched results
+if "jobs_data" not in st.session_state:
+    st.session_state["jobs_data"] = []
+
+with tab_feed:
+    col1, col2, col3, col4 = st.columns([2, 1.2, 1.2, 0.8])
+    with col1:
+        role_query = st.text_input("Target Stack / Role", value="Python Developer")
+    with col2:
+        exp_level = st.selectbox("Experience Tier", ["Fresher / Entry Level", "Experienced (1-3 yrs)", "Senior (4+ yrs)", "All"])
+    with col3:
+        location_query = st.selectbox("Hub Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Mumbai", "Remote"])
+    with col4:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-        search_btn = st.button("Query Jobs", use_container_width=True)
+        search_btn = st.button("Run Query", use_container_width=True)
 
     if search_btn and role_query:
         if not profile:
-            st.warning("Upload a resume to calculate skill match scores.")
+            st.error("Please upload a candidate resume first.")
         else:
             search_term = f"{role_query} fresher" if exp_level == "Fresher / Entry Level" else role_query
-            with st.spinner("Querying job feeds..."):
-                raw_jobs = search_jobs(role=search_term, location=location_query)
-                results = score_jobs(profile.get("skills", []), raw_jobs)
-                
-                m1, m2, m3 = st.columns(3)
-                m1.metric("Opportunities Fetched", len(results))
-                avg_score = round(sum([j.get("match_score", 0) for j in results]) / len(results), 1) if results else 0
-                m2.metric("Average Stack Alignment", f"{avg_score}%")
-                m3.metric("Target Location", location_query)
-                
-                st.write("")
-                for job in results:
-                    matched = job.get("matched_skills", [])
-                    missing = job.get("missing_skills", [])
-                    matched_html = "".join([f"<span class='tag-match'>+ {s}</span>" for s in matched]) if matched else "<span style='color: #8b949e;'>None</span>"
-                    missing_html = "".join([f"<span class='tag-gap'>- {s}</span>" for s in missing]) if missing else "<span style='color: #3fb950;'>All target skills satisfied</span>"
-                    
-                    st.markdown(f"""
-                    <div class='job-card'>
-                        <div style='display: flex; justify-content: space-between; align-items: baseline;'>
-                            <h4 style='margin: 0; color: #58a6ff;'>{job.get('title')}</h4>
-                            <span style='font-weight: 700; color: #f0f6fc; font-size: 1.1rem;'>{job.get('match_score')}% Match</span>
-                        </div>
-                        <p style='margin: 4px 0 10px 0; color: #8b949e; font-size: 0.85rem;'>
-                            <b>{job.get('company')}</b> • {job.get('location')} • Experience: {exp_level}
-                        </p>
-                        <div style='margin-bottom: 6px;'>
-                            <span style='color: #8b949e; font-size: 0.8rem;'>Matched Skills: </span>{matched_html}
-                        </div>
-                        <div>
-                            <span style='color: #8b949e; font-size: 0.8rem;'>Missing Skills: </span>{missing_html}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    if job.get("url"):
-                        st.markdown(f"[Apply via Career Portal]({job.get('url')})")
+            with st.spinner("Fetching matching live roles..."):
+                raw = search_jobs(role=search_term, location=location_query)
+                st.session_state["jobs_data"] = score_jobs(profile.get("skills", []), raw)
 
-with tab2:
+    results = st.session_state.get("jobs_data", [])
+    statuses = get_job_statuses()
+
+    if results:
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Roles Discovered", len(results))
+        avg_score = round(sum([j.get("match_score", 0) for j in results]) / len(results), 1)
+        m2.metric("Mean Stack Match", f"{avg_score}%")
+        high_matches = len([j for j in results if j.get("match_score", 0) >= 75])
+        m3.metric("High-Fit Roles (≥75%)", high_matches)
+        m4.metric("Market Region", location_query)
+
+        st.markdown("---")
+        
+        # Quick CSV Download
+        df_export = pd.DataFrame(results)[["title", "company", "location", "match_score", "url"]]
+        st.download_button(
+            label="📥 Export Opportunities as CSV",
+            data=df_export.to_csv(index=False),
+            file_name="jobnexus_opportunities.csv",
+            mime="text/csv"
+        )
+        st.write("")
+
+        for idx, job in enumerate(results):
+            matched = job.get("matched_skills", [])
+            missing = job.get("missing_skills", [])
+            matched_html = "".join([f"<span class='tag-match'>✓ {s}</span>" for s in matched]) if matched else "<span style='color: #6b7280;'>None detected</span>"
+            missing_html = "".join([f"<span class='tag-gap'>✗ {s}</span>" for s in missing]) if missing else "<span style='color: #34d399;'>100% Core Alignment</span>"
+            
+            job_key = f"{job.get('title')}--{job.get('company')}"
+            current_status = statuses.get(job_key, "Not Applied")
+
+            st.markdown(f"""
+            <div class='job-card'>
+                <div style='display: flex; justify-content: space-between; align-items: center;'>
+                    <h4 style='margin: 0; color: #38bdf8;'>{job.get('title')}</h4>
+                    <span style='font-size: 1.15rem; font-weight: 700; color: #34d399;'>{job.get('match_score')}% Match</span>
+                </div>
+                <p style='margin: 4px 0 10px 0; color: #9ca3af; font-size: 0.85rem;'>
+                    <b>{job.get('company')}</b> • {job.get('location')} • Tier: {exp_level}
+                </p>
+                <div style='margin-bottom: 6px;'>
+                    <span style='color: #9ca3af; font-size: 0.8rem; font-weight: 600;'>Matched: </span>{matched_html}
+                </div>
+                <div style='margin-bottom: 12px;'>
+                    <span style='color: #9ca3af; font-size: 0.8rem; font-weight: 600;'>Skill Gaps: </span>{missing_html}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            card_c1, card_c2 = st.columns([3, 1])
+            with card_c1:
+                if job.get("url"):
+                    st.markdown(f"[🚀 **Open Application Link**]({job.get('url')})")
+            with card_c2:
+                new_status = st.selectbox(
+                    "Track Status", 
+                    ["Not Applied", "Applied", "Interviewing", "Saved"],
+                    index=["Not Applied", "Applied", "Interviewing", "Saved"].index(current_status),
+                    key=f"status_{idx}"
+                )
+                if new_status != current_status:
+                    update_job_status(job.get("title"), job.get("company"), new_status)
+                    st.rerun()
+
+with tab_analytics:
+    st.markdown("#### Market Demand vs Profile Gap Intelligence")
+    if results:
+        all_missing = []
+        for j in results:
+            all_missing.extend(j.get("missing_skills", []))
+        
+        if all_missing:
+            gap_counts = pd.Series(all_missing).value_counts().reset_index()
+            gap_counts.columns = ["Skill", "Frequency in Job Postings"]
+            
+            fig = px.bar(
+                gap_counts.head(8), 
+                x="Frequency in Job Postings", 
+                y="Skill", 
+                orientation="h",
+                color="Frequency in Job Postings",
+                color_continuous_scale="Reds",
+                title="Top Missing Skills in Market for Your Target Role"
+            )
+            fig.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="rgba(17, 24, 39, 0.8)",
+                plot_bgcolor="rgba(17, 24, 39, 0.8)",
+                font_color="#c9d1d9"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.success("No skill gaps detected across the fetched job feeds!")
+    else:
+        st.info("Run a job query in the 'Opportunity Feed' tab to generate analytics.")
+
+with tab_tracker:
+    st.markdown("#### Application Status Tracker (SQLite)")
+    conn = sqlite3.connect(DB_PATH)
+    app_df = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Current Status', updated_at AS 'Last Updated' FROM applications ORDER BY updated_at DESC", conn)
+    conn.close()
+    
+    if not app_df.empty:
+        st.dataframe(app_df, use_container_width=True)
+    else:
+        st.info("No applications tracked yet. Update statuses in the 'Opportunity Feed' to track them here.")
+
+with tab_alerts:
     st.markdown("#### Automated SMTP Dispatch")
-    st.caption("Configured for scheduled or trigger-based career digests.")
+    st.caption("Send high-priority matches directly to your inbox.")
     
     threshold = st.slider("Score Threshold for Alerts (%)", 50, 100, 75)
     
-    if st.button("Trigger Test Digest", type="secondary"):
+    if st.button("Trigger Email Digest", use_container_width=True):
         if not profile:
             st.error("Please load a candidate profile first.")
         else:
-            with st.spinner("Dispatching summary email via SMTP..."):
-                jobs = search_jobs(role=role_query, location=location_query)
+            search_term = f"{role_query} fresher" if exp_level == "Fresher / Entry Level" else role_query
+            with st.spinner("Dispatching digest email..."):
+                jobs = search_jobs(role=search_term, location=location_query)
                 scored = score_jobs(profile.get("skills", []), jobs)
                 qualified = [j for j in scored if j.get("match_score", 0) >= threshold]
                 
@@ -310,12 +444,12 @@ with tab2:
                     else:
                         st.error("Email service error. Check SMTP config.")
                 else:
-                    st.info("No opportunities met the threshold.")
+                    st.warning("No opportunities met the threshold.")
 
-# --- Engineering Footer ---
+# --- Architecture Footer ---
 st.markdown("""
-<div style='margin-top: 40px; padding: 15px 0; border-top: 1px solid #21262d; display: flex; justify-content: space-between; font-size: 0.8rem; color: #8b949e;'>
-    <div>Architecture: Python, Streamlit, SQLite3, BeautifulSoup4</div>
-    <div>Developer: D. Pradeep Naik</div>
+<div style='margin-top: 50px; padding: 16px 0; border-top: 1px solid #1f2937; display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280;'>
+    <div>Stack: Python 3.11 • Streamlit • SQLite3 • Plotly • BeautifulReport</div>
+    <div>Engineered by <span style='color: #38bdf8; font-weight: 600;'>D. Pradeep Naik</span></div>
 </div>
 """, unsafe_allow_html=True)
