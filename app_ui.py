@@ -10,6 +10,49 @@ from db_manager import init_db, store_candidate_profile, get_candidate_profile, 
 from semantic_matcher import calculate_semantic_fit
 from ui_styles import CUSTOM_CSS
 
+# --- Comprehensive Cross-Domain Job Roles Dataset ---
+MASTER_JOB_ROLES = [
+    # Python & AI Ecosystem
+    "Python Developer", "Python Backend Developer", "Python Full Stack Developer",
+    "Python Django / FastAPI Developer", "Python Data Engineer", "Python Machine Learning Engineer",
+    "Python Automation Tester", "AI Engineer", "Generative AI Specialist", "Prompt Engineer",
+    "NLP Engineer", "Computer Vision Engineer", "MLOps Engineer",
+
+    # Java Ecosystem
+    "Java Developer", "Java Full Stack Developer", "Java Spring Boot Microservices Engineer",
+    "Java Backend Architect", "Core Java Developer",
+
+    # JavaScript / Web Frontend & Backend
+    "Frontend Developer", "React.js Developer", "Angular Developer", "Vue.js Developer",
+    "Node.js Backend Developer", "Full Stack Web Developer", "MERN Stack Developer",
+    "MEAN Stack Developer", "Next.js Full Stack Engineer", "UI/UX Developer",
+
+    # Data Science & Analytics
+    "Data Analyst", "Data Scientist", "Business Intelligence (BI) Analyst",
+    "Power BI / Tableau Developer", "Big Data Engineer (Spark/Hadoop)", "Snowflake Data Engineer",
+
+    # Cloud, DevOps & Infrastructure
+    "DevOps Engineer", "Cloud Engineer (AWS/Azure/GCP)", "Kubernetes / Docker Specialist",
+    "Site Reliability Engineer (SRE)", "Terraform Infrastructure Engineer", "Linux System Administrator",
+
+    # QA & Software Testing
+    "QA Automation Engineer", "Selenium Automation Tester", "Manual QA Tester",
+    "Performance Test Engineer (JMeter)", "API Testing Specialist (Postman)",
+
+    # Mobile Development
+    "Android Developer (Kotlin)", "iOS Developer (Swift)", "Flutter Mobile Engineer", "React Native Developer",
+
+    # Cybersecurity & Networks
+    "Cybersecurity Analyst", "Information Security Specialist", "SOC Analyst", "Penetration Tester / Ethical Hacker",
+
+    # Databases & Enterprise ERP
+    "SQL / Database Administrator (DBA)", "PostgreSQL Backend Developer", "Oracle PL/SQL Developer",
+    "SAP ABAP Consultant", "Salesforce Developer",
+
+    # Product & Management
+    "Technical Product Manager", "Scrum Master", "Business Analyst (IT)", "Project Coordinator"
+]
+
 # --- Page Configuration ---
 st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_icon="⚡", layout="wide")
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -87,17 +130,24 @@ tab_feed, tab_analytics, tab_roadmap, tab_tracker, tab_alerts = st.tabs([
 
 if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
-if "role_input" not in st.session_state:
-    st.session_state["role_input"] = "Python Developer"
 
 with tab_feed:
-    col1, col2, col3, col4 = st.columns([2, 1.2, 1.2, 0.8])
-    role_query = col1.text_input("Target Role", value=st.session_state["role_input"])
+    col1, col2, col3, col4 = st.columns([2.2, 1.1, 1.1, 0.8])
+    
+    # Universal Searchable Role Selectbox
+    selected_role = col1.selectbox(
+        "🔍 Target Role (Type any Keyword: Java, React, Cloud, QA, etc.)", 
+        options=sorted(MASTER_JOB_ROLES),
+        index=sorted(MASTER_JOB_ROLES).index("Python Developer"),
+        help="Type any domain keyword to see all associated industry job roles"
+    )
+    
+    role_query = selected_role
     exp_level = col2.selectbox("Experience", ["Fresher / Entry Level", "1-3 yrs", "4+ yrs", "All"])
     location_query = col3.selectbox("Location", ["Hyderabad", "Bangalore", "Pune", "Chennai", "Remote"])
     
     if col4.button("Run Vector Match", use_container_width=True) and profile:
-        with st.spinner("Computing cosine distance across live JD embeddings..."):
+        with st.spinner(f"Computing cosine distance for '{role_query}' across live JD embeddings..."):
             raw = search_jobs(role=role_query, location=location_query)
             st.session_state["jobs_data"] = calculate_semantic_fit(profile, raw)
 
