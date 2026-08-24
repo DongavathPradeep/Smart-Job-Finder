@@ -1,89 +1,73 @@
-import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import streamlit as st
 
-def send_email_alert(recipient_email: str, candidate_name: str, matched_jobs: list) -> bool:
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SENDER_EMAIL = "dungavathpradeepnaik123@gmail.com"
+# కింద ఉన్న దాంట్లో మీ 16 అక్షరాల Google App Password మాత్రమే పెట్టండి (స్పేస్‌లు లేకుండా)
+SENDER_APP_PASSWORD = "YOUR_16_DIGIT_APP_PASSWORD" 
+
+def send_email_alert(recipient_email: str, candidate_name: str, matched_jobs: list):
+    if not matched_jobs:
+        return False, "No jobs available to send."
+
+    # Filter top matching jobs
+    top_jobs = [j for j in matched_jobs if j.get("semantic_score", 0) >= 50][:5]
+    if not top_jobs:
+        top_jobs = matched_jobs[:3]
+
+    subject = f"⚡ Smart Job Finder: Top Matched Roles for {candidate_name}"
+
+    body_html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+        <h2 style="color: #0284c7;">⚡ Smart Job Finder Digest</h2>
+        <p>Hello <b>{candidate_name}</b>,</p>
+        <p>Here are your top semantic matched job openings:</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background: #0f172a; color: #38bdf8; text-align: left;">
+                    <th style="padding: 10px; border: 1px solid #334155;">Role</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Company</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Match Score</th>
+                    <th style="padding: 10px; border: 1px solid #334155;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
     """
-    Dispatches styled HTML email alert with matched tech roles.
-    Reads credentials from Streamlit Secrets or Environment Variables.
-    """
-    # Check Streamlit Secrets first, then fallback to OS Environment variables
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    
-    sender_email = None
-    sender_password = None
 
-    if hasattr(st, "secrets") and "SMTP_EMAIL" in st.secrets:
-        sender_email = st.secrets.get("SMTP_EMAIL")
-        sender_password = st.secrets.get("SMTP_PASSWORD")
-    else:
-        sender_email = os.getenv("SMTP_EMAIL", "test@gmail.com")
-        sender_password = os.getenv("SMTP_PASSWORD", "")
-
-    if not sender_password or not recipient_email:
-        # Graceful simulation if credentials are not configured yet
-        st.info(f"📧 [Preview Mode] Email payload prepared for {recipient_email} with {len(matched_jobs)} job matches.")
-        return True
-
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"JobNexus Career Alert: {len(matched_jobs)} High-Fit Opportunities"
-        msg["From"] = f"JobNexus Intelligence <{sender_email}>"
-        msg["To"] = recipient_email
-
-        job_rows = ""
-        for job in matched_jobs[:8]:
-            title = job.get("title", "Role Opening")
-            company = job.get("company", "Tech Enterprise")
-            score = job.get("match_score", "80")
-            url = job.get("url", "#")
-            job_rows += f"""
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 10px; font-weight: 600; color: #1e293b;">{title}</td>
-                <td style="padding: 10px; color: #64748b;">{company}</td>
-                <td style="padding: 10px; color: #10b981; font-weight: 700;">{score}%</td>
-                <td style="padding: 10px;"><a href="{url}" style="color: #2563eb; text-decoration: none; font-weight: 600;">Apply &rarr;</a></td>
-            </tr>
-            """
-
-        html_body = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <h2 style="color: #0f172a; margin-top: 0;">JobNexus Career Digest</h2>
-                <p style="color: #475569;">Hello <b>{candidate_name}</b>,</p>
-                <p style="color: #475569;">Here are your highest-matched live engineering roles based on your latest skill scan:</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                    <thead>
-                        <tr style="background: #f1f5f9; text-align: left;">
-                            <th style="padding: 8px;">Role</th>
-                            <th style="padding: 8px;">Company</th>
-                            <th style="padding: 8px;">Match</th>
-                            <th style="padding: 8px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {job_rows}
-                    </tbody>
-                </table>
-                <br>
-                <p style="font-size: 0.8rem; color: #94a3b8; text-align: center;">Sent via JobNexus Automated Career Engine</p>
-            </div>
-        </body>
-        </html>
+    for job in top_jobs:
+        body_html += f"""
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;"><b>{job.get('title')}</b></td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;">{job.get('company')}</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1; color: #10b981; font-weight: bold;">{job.get('semantic_score')}%</td>
+                    <td style="padding: 10px; border: 1px solid #cbd5e1;"><a href="{job.get('url', '#')}" style="color: #0284c7; font-weight: 600;">Apply Now</a></td>
+                </tr>
         """
 
-        msg.attach(MIMEText(html_body, "html"))
+    body_html += """
+            </tbody>
+        </table>
+        <br>
+        <p style="font-size: 0.82rem; color: #64748b;">Automated by Smart Job Finder • Engineered by Dongavath Pradeep</p>
+    </body>
+    </html>
+    """
 
-        server = smtplib.SMTP(smtp_server, smtp_port)
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = recipient_email
+    msg.attach(MIMEText(body_html, "html"))
+
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
         server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
+        server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
+        server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
         server.quit()
-        return True
+        return True, "Email sent successfully!"
     except Exception as e:
-        st.error(f"SMTP Dispatch Error: {str(e)}")
-        return False
+        return False, str(e)
