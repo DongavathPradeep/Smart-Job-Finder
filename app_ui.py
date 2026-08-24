@@ -27,7 +27,7 @@ st.set_page_config(page_title="Smart Job Finder | AI Career Intelligence", page_
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# --- Custom Styling: IT Infrastructure Background & Smooth Hover Steps ---
+# --- Custom Styling: Exact Hero Card Styling ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -59,15 +59,38 @@ html, body, [class*="css"] {
     letter-spacing: -0.5px;
 }
 
-/* Unified Center Upload Box */
-.unified-upload-box {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.7));
-    border: 1.5px dashed rgba(56, 189, 248, 0.5);
-    border-radius: 18px;
-    padding: 25px;
-    margin: 10px 0 25px 0;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(56, 189, 248, 0.05);
+/* Exact Large Hero Upload Box with Glowing Dotted Border */
+.hero-ingest-container {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(11, 15, 25, 0.95));
+    border: 1.5px dashed #0284c7;
+    border-radius: 20px;
+    padding: 35px 25px 25px 25px;
+    margin: 15px 0 30px 0;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(2, 132, 199, 0.15);
+    text-align: center;
+}
+.hero-ingest-title {
+    color: #f8fafc;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.hero-ingest-sub {
+    color: #94a3b8;
+    font-size: 0.98rem;
+    margin: 0 0 20px 0;
+}
+
+/* Streamlit Native Uploader Custom Clean Dark Styling */
+[data-testid="stFileUploader"] {
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 /* Interactive Floating Step Cards */
@@ -193,21 +216,21 @@ if "jobs_data" not in st.session_state:
     st.session_state["jobs_data"] = []
 
 # ========================================================
-# 1. TAB: HOME (Ingest -> Upload directly underneath -> Steps -> Match)
+# 1. TAB: HOME (Exact Unified Hero Upload Box)
 # ========================================================
 with tab_home:
-    # Unified Ingest Card with Upload directly inside/below
+    # Exact Large Dotted-Border Hero Card Container
     st.markdown("""
-    <div class='unified-upload-box'>
-        <div style='text-align: center; margin-bottom: 15px;'>
-            <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
-            <p style='color:#94a3b8; font-size:0.9rem; margin:4px 0 0 0;'>
-                Upload your PDF resume to generate dense vector embeddings and extract skill matrices.
-            </p>
+    <div class='hero-ingest-container'>
+        <div class='hero-ingest-title'>
+            <span>📄</span> Ingest Candidate Resume
         </div>
+        <p class='hero-ingest-sub'>
+            Upload your PDF resume to generate dense vector embeddings and extract skill matrices.
+        </p>
     """, unsafe_allow_html=True)
 
-    up_c1, up_c2, up_c3 = st.columns([1, 2.5, 1])
+    up_c1, up_c2, up_c3 = st.columns([1, 2.8, 1])
     with up_c2:
         uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
         if uploaded_file and st.button("🚀 Process & Build Embeddings", use_container_width=True):
