@@ -49,7 +49,7 @@ st.set_page_config(page_title="JobNexus | AI Vector Career Intelligence", page_i
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 init_db()
 
-# --- Custom Styling ---
+# --- Custom Styling for Unified Card & UI ---
 st.markdown("""
 <style>
 .footer-container {
@@ -72,20 +72,19 @@ st.markdown("""
     font-size: 0.82rem;
     font-family: monospace;
 }
-.upload-hero-card {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
+.unified-upload-box {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
     border: 1.5px dashed #38bdf8;
     border-radius: 16px;
-    padding: 25px;
-    text-align: center;
-    margin: 15px 0 25px 0;
-    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.08);
+    padding: 28px 24px 20px 24px;
+    margin: 10px 0 25px 0;
+    box-shadow: 0 4px 24px rgba(56, 189, 248, 0.08);
 }
 .step-card {
     background: #1e293b;
     border: 1px solid #334155;
     border-radius: 12px;
-    padding: 16px;
+    padding: 18px;
     height: 100%;
     text-align: left;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -102,6 +101,13 @@ st.markdown("""
     justify-content: center;
     font-size: 0.85rem;
     margin-bottom: 8px;
+}
+.about-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -148,21 +154,24 @@ with st.sidebar:
 tab_home, tab_features, tab_about = st.tabs(["🏠 Home", "⚡ Features", "💡 About Project"])
 
 # ==========================================
-# 1. HOME TAB (Upload -> Steps -> Search)
+# 1. HOME TAB (Single Unified Upload Box -> Steps -> Search)
 # ==========================================
 with tab_home:
-    # A. Central Resume Upload Box
+    # Single Box for Header, Subtitle & Uploader
     st.markdown("""
-    <div class='upload-hero-card'>
-        <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
-        <p style='color:#94a3b8; font-size:0.9rem; margin-top:4px;'>Upload your PDF resume to generate 384-dimensional vector embeddings and extract skill matrices.</p>
-    </div>
+    <div class='unified-upload-box'>
+        <div style='text-align: center;'>
+            <h3 style='margin:0; color:#f8fafc;'>📄 Ingest Candidate Resume</h3>
+            <p style='color:#94a3b8; font-size:0.9rem; margin:6px 0 16px 0;'>
+                Upload your PDF resume to generate 384-dimensional vector embeddings and extract skill matrices.
+            </p>
+        </div>
     """, unsafe_allow_html=True)
 
-    up_col1, up_col2, up_col3 = st.columns([1, 2, 1])
-    with up_col2:
+    up_c1, up_c2, up_c3 = st.columns([1, 2.2, 1])
+    with up_c2:
         uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], label_visibility="collapsed")
-        if uploaded_file and st.button("🚀 Parse & Generate Vectors", use_container_width=True):
+        if uploaded_file and st.button("🚀 Process & Build Embeddings", use_container_width=True):
             temp_path = f"temp_{uploaded_file.name}"
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -175,10 +184,10 @@ with tab_home:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-    st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # B. 4-Step Guide: How to Fetch and Land Your Job
-    st.markdown("<h4 style='color:#38bdf8; text-align:center; margin-bottom:18px;'>🧭 How to Fetch & Match Your Target Jobs</h4>", unsafe_allow_html=True)
+    # 4-Step Guide: How to Fetch & Match Your Target Jobs
+    st.markdown("<h4 style='color:#38bdf8; text-align:center; margin: 30px 0 18px 0;'>🧭 How to Fetch & Match Your Target Jobs</h4>", unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
 
     with s1:
@@ -186,7 +195,7 @@ with tab_home:
         <div class='step-card'>
             <div class='step-number'>1</div>
             <h5 style='color:#f8fafc; margin:0 0 6px 0;'>Ingest Resume</h5>
-            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>Upload your PDF above. NLP extracts extracted tech skills, experience, and contact metadata.</p>
+            <p style='color:#94a3b8; font-size:0.82rem; margin:0;'>Upload your PDF above. NLP extracts tech skills, experience, and contact metadata.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -219,7 +228,7 @@ with tab_home:
 
     st.markdown("<hr style='border:0.5px solid #334155; margin: 30px 0;'>", unsafe_allow_html=True)
 
-    # C. Job Search & Live Vector Matching
+    # Job Search & Live Vector Matching
     st.markdown("<h4 style='color:#f8fafc;'>🎯 Live Neural Job Search Feed</h4>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns([2.2, 1.1, 1.1, 0.8])
     
@@ -298,33 +307,29 @@ with tab_home:
 # 2. FEATURES TAB
 # ==========================================
 with tab_features:
-    st.markdown("<h3 style='color:#38bdf8;'>⚡ JobNexus Platform Features</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>⚡ Platform Features & Capabilities</h3>", unsafe_allow_html=True)
     
     f1, f2 = st.columns(2)
     with f1:
         st.markdown("""
-        #### 🎯 1. Neural Semantic Matcher
-        * Moves beyond simple keyword-counting ATS systems.
-        * Evaluates actual contextual similarity between your technical background and job requirements using dense vector representations.
+        #### 🎯 1. Contextual AI Matching
+        * Moves beyond simple keyword search. It understands candidate experience context and pairs it with real job requirements.
         
-        #### 🔍 2. Skill Gap Intelligence & Bridge
-        * Instantly highlights missing tools, frameworks, and domain knowledge per JD.
-        * Generates a dynamic 7-day learning roadmap tailored to close specific candidate gaps.
+        #### 🔍 2. Live Skill Gap Detection
+        * Instantly shows what skills match the job description and what specific tools are missing so candidates can prepare before interviewing.
         """)
     with f2:
         st.markdown("""
-        #### 📋 3. Application Lifecycle Tracker
-        * Integrated SQLite persistence layer.
-        * Real-time tracking of jobs marked as `Applied`, `Interviewing`, or `Saved` without page reload data loss.
+        #### 📋 3. Built-in Application Tracker
+        * Easily manage all your active job applications in one place without needing external spreadsheets or notes.
 
-        #### 📬 4. Automated SMTP Alert Dispatcher
-        * Allows 1-click dispatch of matched role digests directly to the candidate's verified email address.
+        #### 📬 4. Instant Digest Alerts
+        * Get curated lists of top matching jobs delivered straight to your email with a single click.
         """)
 
     st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
     
-    # Live Application Tracker Table view inside features
-    st.markdown("#### 📊 Current Application Tracker (SQLite DB)")
+    st.markdown("#### 📊 Real-Time Application Tracker")
     conn = sqlite3.connect("candidate.db")
     df = pd.read_sql("SELECT job_title AS 'Role', company AS 'Company', status AS 'Status', updated_at AS 'Updated' FROM applications", conn)
     conn.close()
@@ -334,22 +339,47 @@ with tab_features:
         st.info("No applications logged yet. Search jobs in the Home tab and update their status!")
 
 # ==========================================
-# 3. ABOUT TAB
+# 3. ABOUT TAB (What JobNexus Does & User Benefits)
 # ==========================================
 with tab_about:
-    st.markdown("<h3 style='color:#38bdf8;'>💡 About JobNexus Architecture</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#38bdf8;'>💡 What is JobNexus & What Does It Do?</h3>", unsafe_allow_html=True)
     
     st.markdown("""
-    **JobNexus** is an end-to-end AI-powered career intelligence engine engineered to streamline job discovery, semantic matching, and application tracking for modern software engineers.
-    
-    #### 🛠️ Tech Stack & Neural Architecture:
-    * **NLP & Vector Embeddings:** Hugging Face `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional dense vectors).
-    * **Semantic Distance:** Vector cosine similarity computed via PyTorch/Scikit-Learn.
-    * **Resume Ingestion Engine:** `pdfminer.six` / `PyPDF2` regex-driven entity extraction.
-    * **Database & Persistence:** SQLite relational tables (`candidate_profiles`, `applications`).
-    * **UI Framework:** Streamlit Custom CSS & Responsive Layout Components.
-    * **Notification Gateway:** Python `smtplib` + MIME email formatting.
+    **JobNexus** is an AI-powered Career Co-Pilot designed to take the guesswork out of job hunting. Instead of spending hours applying randomly to hundreds of job postings with low response rates, JobNexus analyzes your exact resume and pairs you with the most relevant opportunities.
     """)
+
+    ab1, ab2 = st.columns(2)
+    with ab1:
+        st.markdown("""
+        <div class='about-card'>
+            <h4 style='color:#38bdf8; margin-top:0;'>🎯 1. Finds Your True Semantic Fit</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Traditional portals only look for matching words. JobNexus understands your technical experience depth, matching your background contextually with real market requirements.
+            </p>
+        </div>
+        <div class='about-card'>
+            <h4 style='color:#34d399; margin-top:0;'>⚡ 2. Eliminates Resume Rejections</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                By giving you an instant <b>Match Score (e.g., 85%)</b> before you apply, you know exactly which jobs you have the highest probability of getting an interview call for.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with ab2:
+        st.markdown("""
+        <div class='about-card'>
+            <h4 style='color:#f59e0b; margin-top:0;'>🔍 3. Identifies Critical Skill Gaps</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                It tells you what tools or technologies you are missing for a specific job (e.g., Docker, FastAPI, Kubernetes), allowing you to upskill quickly before an interview.
+            </p>
+        </div>
+        <div class='about-card'>
+            <h4 style='color:#a855f7; margin-top:0;'>📋 4. Organizes Your Entire Job Search</h4>
+            <p style='color:#cbd5e1; font-size:0.88rem; margin:0;'>
+                Tracks every application from 'Saved' to 'Interviewing' and 'Applied' in one unified database, keeping your job search structured and stress-free.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("<hr style='border:0.5px solid #334155;'>", unsafe_allow_html=True)
     
@@ -358,7 +388,7 @@ with tab_about:
         <h4 style='color:#f8fafc; margin:0;'>👨‍💻 System Architect & Engineer</h4>
         <h3 style='color:#38bdf8; margin:6px 0 12px 0;'>Dongavath Pradeep</h3>
         <p style='color:#cbd5e1; font-size:0.9rem; max-width:600px; margin:0 auto 15px auto;'>
-            Specialized in AI-driven tools, NLP architectures, semantic search systems, and scalable full-stack Python engineering.
+            Engineered to empower developers and job seekers with modern AI matching tools, transparent skill insights, and efficient career navigation.
         </p>
         <a href='https://github.com/DongavathPradeep' target='_blank' style='background:#0f172a; border:1px solid #38bdf8; color:#38bdf8; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600; margin-right:10px;'>🔗 GitHub Profile</a>
         <a href='https://www.linkedin.com/in/pradeep-naik-42292b264/' target='_blank' style='background:#0284c7; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:600;'>💼 LinkedIn Profile</a>
