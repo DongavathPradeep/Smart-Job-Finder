@@ -1,54 +1,56 @@
-import os
+import io
 import re
 from pypdf import PdfReader
 
+def parse_resume(file_input):
+    """
+    file_input can be a file path string or bytes/BytesIO from Streamlit.
+    """
+    if isinstance(file_input, bytes):
+        stream = io.BytesIO(file_input)
+    elif hasattr(file_input, "read"):
+        file_input.seek(0)
+        stream = io.BytesIO(file_input.read())
+    else:
+        stream = file_input
 
-def parse_resume(file_path):
-    """Parses a candidate's resume PDF to extract profile details and technical skills."""
-    if not os.path.exists(file_path):
-        return {}
-
-    reader = PdfReader(file_path)
+    reader = PdfReader(stream)
     text = ""
     for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
 
-    # Extract Email
-    email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
-    email_match = re.search(email_pattern, text)
+    # Email Extraction
+    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text)
     email = email_match.group(0) if email_match else "dungavathpradeepnaik123@gmail.com"
 
-    # Extract Phone
-    phone_pattern = r"(?:\+91|91)?[- ]?[6-9]\d{9}"
-    phone_match = re.search(phone_pattern, text)
-    phone = phone_match.group(0) if phone_match else "N/A"
+    # Name Extraction fallback
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    full_name = lines[0] if lines else "Pradeep Naik"
+    if len(full_name) > 35 or "@" in full_name:
+        full_name = "Pradeep Naik"
 
-    # Extract Candidate Name (First valid line)
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-    full_name = lines[0] if lines else "PRADEEP NAIK DONGAVATH"
-
-    # Industry standard skills library for matching
-    skills_db = [
-        "Python", "SQL", "HTML", "CSS", "JavaScript", "React", "Node",
-        "Django", "Flask", "Pandas", "NumPy", "Git", "Machine Learning",
-        "Data Analysis", "Selenium", "Docker", "AWS", "Java", "C++"
+    # Skills Detection
+    SKILLS_DB = [
+        "python", "java", "c++", "c", "sql", "html", "css", "javascript", "react", "angular",
+        "node", "express", "django", "flask", "fastapi", "machine learning", "deep learning",
+        "nlp", "data science", "data analysis", "pandas", "numpy", "scikit-learn", "tensorflow",
+        "pytorch", "aws", "azure", "gcp", "docker", "kubernetes", "git", "linux", "selenium"
     ]
+    
+    found_skills = []
+    text_lower = text.lower()
+    for skill in SKILLS_DB:
+        if re.search(r"\b" + re.escape(skill) + r"\b", text_lower):
+            found_skills.append(skill.title())
 
-    detected_skills = []
-    for skill in skills_db:
-        if re.search(rf"\b{re.escape(skill)}\b", text, re.IGNORECASE):
-            detected_skills.append(skill)
-
-    # Fallback skills if extraction finds few
-    if not detected_skills:
-        detected_skills = ["Python", "SQL", "HTML", "CSS", "Git"]
+    if not found_skills:
+        found_skills = ["Python", "SQL", "Machine Learning"]
 
     return {
         "full_name": full_name,
         "email": email,
-        "phone": phone,
-        "skills": detected_skills,
-        "resume_path": file_path
+        "skills": list(set(found_skills)),
+        "raw_text": text
     }
