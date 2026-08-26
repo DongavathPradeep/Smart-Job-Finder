@@ -6,7 +6,7 @@ SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SENDER_EMAIL = "dungavathpradeepnaik123@gmail.com"
 # కింద ఉన్న దాంట్లో మీ 16 అక్షరాల Google App Password మాత్రమే పెట్టండి (స్పేస్‌లు లేకుండా)
-SENDER_APP_PASSWORD = "YOUR_16_DIGIT_APP_PASSWORD" 
+SENDER_APP_PASSWORD = "ezbbfkpvualdmlur" 
 
 def send_email_alert(recipient_email: str, candidate_name: str, matched_jobs: list):
     if not matched_jobs:
